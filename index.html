@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Fishing Boat Monitoring System</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        #map { height: 80vh; width: 100%; border-radius: 10px; border: 2px solid #34495e; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #1a1a1a; color: white; margin: 0; padding: 20px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .status-box { display: flex; gap: 10px; }
+        .badge { padding: 10px 15px; border-radius: 5px; font-weight: bold; text-transform: uppercase; font-size: 14px; transition: 0.3s; }
+        #status { background: #34495e; }
+        #warning { background: #7f8c8d; display: none; }
+        .alert-flash { animation: blinker 1s linear infinite; background: #c0392b !important; color: white !important; }
+        @keyframes blinker { 50% { opacity: 0.2; } }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>FISHING BOAT MONITORING SYSTEM</h1>
+        <div class="status-box">
+            <div id="status" class="badge">INITIALIZING...</div>
+            <div id="warning" class="badge">WARNING: BOUNDARY</div>
+        </div>
+    </div>
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // --- CONFIGURATION ---
+        const channelID = "3300600"; 
+        const readKey = "M8RQ5ECSRWHF5ZRE";
+        const PROX_THRESHOLD = 50.0; // 50 Meters
+
+        // Geo-Fence Boundary (Your 11 Points)
+        const fenceCoords = [
+            [23.71602, 86.94844], [23.71621, 86.94927], [23.71636, 86.94993],
+            [23.71638, 86.95041], [23.71592, 86.95051], [23.71537, 86.95059],
+            [23.71495, 86.95062], [23.71486, 86.94985], [23.71479, 86.94912],
+            [23.71475, 86.94858], [23.71544, 86.94843]
+        ];
+
+        // Initialize Map with Google Satellite Tiles
+        var map = L.map('map').setView([23.715, 86.949], 15);
+        L.tileLayer('https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}', {
+            maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3']
+        }).addTo(map);
+
+        // Draw the Geo-Fence on the map (Blue Polygon)
+        L.polygon(fenceCoords, {color: 'cyan', weight: 2, fillOpacity: 0.1}).addTo(map);
+
+        var boatMarker = L.marker([0, 0]).addTo(map);
+        var boatPath = L.polyline([], {color: '#f1c40f', weight: 4}).addTo(map); // Yellow Path
+        var firstLoad = true;
+
+        async function updateData() {
+            try {
+                // Fetch latest data from ThingSpeak
+                const response = await fetch(`https://api.thingspeak.com/channels/${channelID}/feeds.json?api_key=${readKey}&results=1`);
+                const data = await response.json();
+                const feed = data.feeds[0];
+
+                if (feed.field1 && feed.field2) {
+                    const lat = parseFloat(feed.field1);
+                    const lon = parseFloat(feed.field2);
+                    const dist = parseFloat(feed.field3) || 0; // Distance from Transmitter Node
+
+                    if (lat !== 0 && lon !== 0) {
+                        const currentPos = [lat, lon];
+                        
+                        // 1. Draw the Path and move Marker
+                        boatMarker.setLatLng(currentPos);
+                        boatPath.addLatLng(currentPos);
+
+                        if (firstLoad) {
+                            map.setView(currentPos, 18);
+                            firstLoad = false;
+                        }
+
+                        // 2. Logic for SOS and Warning Display
+                        let statusDiv = document.getElementById('status');
+                        let warnDiv = document.getElementById('warning');
+
+                        // Check SOS (If distance is 0 or 1m, or manually triggered)
+                        if (dist <= 1.0) {
+                            statusDiv.innerHTML = "!!! SOS EMERGENCY !!!";
+                            statusDiv.className = "badge alert-flash";
+                        } else {
+                            statusDiv.innerHTML = `LIVE | Lat: ${lat.toFixed(5)}, Lon: ${lon.toFixed(5)}`;
+                            statusDiv.className = "badge";
+                            statusDiv.style.background = "#27ae60";
+                        }
+
+                        // 3. Show Warning if within 50m
+                        if (dist > 1.0 && dist <= PROX_THRESHOLD) {
+                            warnDiv.style.display = "block";
+                            warnDiv.innerHTML = `WARNING: ${dist.toFixed(1)}m TO BORDER`;
+                            warnDiv.style.background = "#e67e22";
+                        } else {
+                            warnDiv.style.display = "none";
+                        }
+                    } else {
+                        document.getElementById('status').innerHTML = "SEARCHING FOR BOAT...";
+                    }
+                }
+            } catch (error) {
+                console.error("Cloud Connection Error:", error);
+            }
+        }
+
+        // Refresh every 15 seconds
+        setInterval(updateData, 15000);
+        updateData();
+    </script>
+</body>
+</html>
