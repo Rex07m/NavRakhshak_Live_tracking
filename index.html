@@ -10,9 +10,8 @@
         .status-box { display: flex; gap: 10px; }
         .badge { padding: 10px 15px; border-radius: 5px; font-weight: bold; text-transform: uppercase; font-size: 14px; transition: 0.3s; display: flex; align-items: center; }
         #status { background: #1c2833; border: 1px solid #34495e; }
-        #warning { background: #7f8c8d; display: none; border: 1px solid #fff; }
+        #warning { background: #e67e22; display: none; border: 1px solid #fff; }
         
-        /* Animation for SOS */
         .alert-flash { animation: blinker 0.6s linear infinite; background: #ff0000 !important; color: white !important; box-shadow: 0 0 20px #ff0000; }
         @keyframes blinker { 50% { opacity: 0.4; } }
         
@@ -33,53 +32,47 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // --- CONFIGURATION ---
         const channelID = "3300600"; 
         const readKey = "M8RQ5ECSRWHF5ZRE";
         const ALERT_THRESHOLD = 15.0; 
 
-        // Geofence Coordinates (Payradanga)
+        // --- PAYRADANGA COORDINATES ---
         const fenceCoords = [
             [23.13184, 88.54711], [23.13184, 88.54735], [23.13175, 88.54746],
             [23.13161, 88.54742], [23.13153, 88.54736], [23.1315, 88.54711], [23.13168, 88.54701]
         ];
 
-        // Set initial view to Payradanga
+        // Initialize Map centered on your coordinates
         var map = L.map('map').setView([23.13168, 88.5472], 19);
         
-        // Google Hybrid Satellite Map
-        L.tileLayer('https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}', {
+        // Google Hybrid Satellite Tiles
+        var googleSat = L.tileLayer('https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}', {
             maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3']
         }).addTo(map);
 
-        // --- HIGHLIGHTED GEOFENCE BORDER ---
-        // 1. Outer Glow Line
-        L.polygon(fenceCoords, {
-            color: '#00f2ff', 
-            weight: 12, 
-            opacity: 0.2, 
-            fill: false 
-        }).addTo(map);
-
-        // 2. Main Neon Border and Shaded Interior
+        // --- GEOFENCE LAYERS (The Highlighted Box) ---
+        // Blue Glow
+        var glow = L.polygon(fenceCoords, { color: '#00f2ff', weight: 15, opacity: 0.3, fill: false }).addTo(map);
+        // Main Border
         var geofence = L.polygon(fenceCoords, {
             color: '#00f2ff', 
             weight: 3, 
             fillColor: '#00f2ff', 
-            fillOpacity: 0.15,
+            fillOpacity: 0.2,
             dashArray: '5, 10'
         }).addTo(map);
 
-        // Boat Marker
+        // --- BOAT MARKER AND PATH ---
+        var boatPath = L.polyline([], {color: '#f1c40f', weight: 4, opacity: 1.0}).addTo(map);
+        
         var boatIcon = L.circleMarker([0, 0], {
-            radius: 9, 
-            color: '#fff', 
+            radius: 10, 
+            color: '#ffffff', 
             fillColor: '#007bff', 
             fillOpacity: 1, 
             weight: 3
         }).addTo(map);
 
-        var boatPath = L.polyline([], {color: '#f1c40f', weight: 3}).addTo(map);
         var firstLoad = true;
 
         async function updateData() {
@@ -94,12 +87,14 @@
                     const dist = parseFloat(feed.field3); 
                     const timestamp = new Date(feed.created_at).toLocaleTimeString();
 
-                    document.getElementById('last-sync').innerHTML = `Last Heartbeat: ${timestamp} | ThingSpeak Sync: OK`;
+                    document.getElementById('last-sync').innerHTML = `Last Update: ${timestamp} | ThingSpeak: Connected`;
 
                     if (lat !== 0 && lon !== 0) {
                         const currentPos = [lat, lon];
+                        
+                        // Update Marker and Path
                         boatIcon.setLatLng(currentPos);
-                        boatPath.addLatLng(currentPos);
+                        boatPath.addLatLng(currentPos); // THIS DRAWS THE YELLOW PATH
 
                         if (firstLoad) {
                             map.setView(currentPos, 19);
@@ -109,11 +104,11 @@
                         let statusDiv = document.getElementById('status');
                         let warnDiv = document.getElementById('warning');
 
-                        // Check SOS (Manual Trigger sends 0.0 distance)
+                        // SOS Logic
                         if (dist === 0.0) {
                             statusDiv.innerHTML = "!!! SOS EMERGENCY !!!";
                             statusDiv.className = "badge alert-flash";
-                            geofence.setStyle({color: '#ff0000', fillColor: '#ff0000'}); 
+                            geofence.setStyle({color: '#ff0000', fillColor: '#ff0000'});
                         } else {
                             statusDiv.innerHTML = `BOAT ONLINE | DIST: ${dist}m`;
                             statusDiv.className = "badge";
@@ -121,11 +116,10 @@
                             geofence.setStyle({color: '#00f2ff', fillColor: '#00f2ff'});
                         }
 
-                        // Check Boundary Violation
+                        // Boundary Warning Logic
                         if (dist > 0.1 && dist <= ALERT_THRESHOLD) {
                             warnDiv.style.display = "flex";
-                            warnDiv.innerHTML = `VIOLATION: ${dist}m`;
-                            warnDiv.style.background = "#e67e22";
+                            warnDiv.innerHTML = `WARNING: ${dist}m TO BORDER`;
                             boatIcon.setStyle({fillColor: '#ff9900'});
                         } else {
                             warnDiv.style.display = "none";
