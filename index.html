@@ -11,7 +11,6 @@
         
         .status-box { display: flex; gap: 10px; flex-wrap: wrap; }
         
-        /* Fixed Badge CSS for Coordinate Visibility */
         .badge { 
             padding: 12px 20px; 
             border-radius: 5px; 
@@ -22,7 +21,7 @@
             display: flex; 
             align-items: center;
             justify-content: center;
-            min-width: 280px; /* Ensures space for Lat/Lon text */
+            min-width: 300px; 
             text-align: center;
             white-space: nowrap;
         }
@@ -30,7 +29,6 @@
         #status { background: #1c2833; border: 1px solid #34495e; }
         #warning { background: #e67e22; display: none; border: 1px solid #fff; min-width: 200px; }
         
-        /* SOS Animation */
         .alert-flash { animation: blinker 0.6s linear infinite; background: #ff0000 !important; color: white !important; box-shadow: 0 0 20px #ff0000; }
         @keyframes blinker { 50% { opacity: 0.4; } }
         
@@ -41,7 +39,7 @@
     <div class="header">
         <h1>NAVRAKHSHAK <span style="color: #00f2ff; font-size: 18px;">SECURE MONITOR</span></h1>
         <div class="status-box">
-            <div id="status" class="badge">SYSTEM INITIALIZING...</div>
+            <div id="status" class="badge">SYSTEM READY</div>
             <div id="warning" class="badge">BOUNDARY ALERT</div>
         </div>
     </div>
@@ -51,25 +49,21 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // --- CONFIGURATION ---
         const channelID = "3300600"; 
         const readKey = "M8RQ5ECSRWHF5ZRE";
         const ALERT_THRESHOLD = 15.0; 
 
-        // --- PAYRADANGA COORDINATES ---
         const fenceCoords = [
             [23.13184, 88.54711], [23.13184, 88.54735], [23.13175, 88.54746],
             [23.13161, 88.54742], [23.13153, 88.54736], [23.1315, 88.54711], [23.13168, 88.54701]
         ];
 
-        // Initialize Map
         var map = L.map('map').setView([23.13168, 88.5472], 19);
         
         L.tileLayer('https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}', {
             maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3']
         }).addTo(map);
 
-        // --- GEOFENCE LAYERS ---
         L.polygon(fenceCoords, { color: '#00f2ff', weight: 15, opacity: 0.3, fill: false }).addTo(map);
         var geofence = L.polygon(fenceCoords, {
             color: '#00f2ff', 
@@ -79,7 +73,6 @@
             dashArray: '5, 10'
         }).addTo(map);
 
-        // --- BOAT MARKER AND PATH ---
         var boatPath = L.polyline([], {color: '#f1c40f', weight: 4, opacity: 1.0}).addTo(map);
         var boatIcon = L.circleMarker([0, 0], {
             radius: 10, color: '#ffffff', fillColor: '#007bff', fillOpacity: 1, weight: 3
@@ -114,20 +107,19 @@
                         let statusDiv = document.getElementById('status');
                         let warnDiv = document.getElementById('warning');
 
-                        // --- CORE LOGIC FIX: DISPLAYING COORDINATES ---
+                        // --- UPDATED LOGIC: SHOW COORDINATES IN THE PRIMARY BOX ---
                         if (dist === 0.0) {
-                            statusDiv.innerHTML = `SOS!! LAT:${lat.toFixed(5)} LON:${lon.toFixed(5)}`;
+                            statusDiv.innerHTML = `!!! SOS !!! LAT:${lat.toFixed(5)} LON:${lon.toFixed(5)}`;
                             statusDiv.className = "badge alert-flash";
                             geofence.setStyle({color: '#ff0000', fillColor: '#ff0000'});
                         } else {
-                            // This ensures the Latitude and Longitude are printed inside the Green Box
-                            statusDiv.innerHTML = `LIVE | LAT: ${lat.toFixed(5)} | LON: ${lon.toFixed(5)}`;
+                            statusDiv.innerHTML = `BOAT ONLINE | LAT: ${lat.toFixed(5)} LON: ${lon.toFixed(5)}`;
                             statusDiv.className = "badge";
                             statusDiv.style.background = "#27ae60";
                             geofence.setStyle({color: '#00f2ff', fillColor: '#00f2ff'});
                         }
 
-                        // Warning Logic
+                        // Warning Logic (Distance stays here for emergency alert)
                         if (dist > 0.1 && dist <= ALERT_THRESHOLD) {
                             warnDiv.style.display = "flex";
                             warnDiv.innerHTML = `WARNING: ${dist.toFixed(1)}M TO BORDER`;
