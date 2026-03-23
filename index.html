@@ -33,18 +33,21 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
+        // --- CONFIGURATION ---
         const channelID = "3300600"; 
         const readKey = "M8RQ5ECSRWHF5ZRE";
         const ALERT_THRESHOLD = 15.0; 
 
-        // Geofence Coordinates
+        // Geofence Coordinates (Payradanga)
         const fenceCoords = [
             [23.13184, 88.54711], [23.13184, 88.54735], [23.13175, 88.54746],
             [23.13161, 88.54742], [23.13153, 88.54736], [23.1315, 88.54711], [23.13168, 88.54701]
         ];
 
-        var map = L.map('map').setView([23.1316, 88.5472], 19);
+        // Set initial view to Payradanga
+        var map = L.map('map').setView([23.13168, 88.5472], 19);
         
+        // Google Hybrid Satellite Map
         L.tileLayer('https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}', {
             maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3']
         }).addTo(map);
@@ -64,7 +67,7 @@
             weight: 3, 
             fillColor: '#00f2ff', 
             fillOpacity: 0.15,
-            dashArray: '5, 10' // Makes the border look like a technical perimeter
+            dashArray: '5, 10'
         }).addTo(map);
 
         // Boat Marker
@@ -106,10 +109,11 @@
                         let statusDiv = document.getElementById('status');
                         let warnDiv = document.getElementById('warning');
 
+                        // Check SOS (Manual Trigger sends 0.0 distance)
                         if (dist === 0.0) {
                             statusDiv.innerHTML = "!!! SOS EMERGENCY !!!";
                             statusDiv.className = "badge alert-flash";
-                            geofence.setStyle({color: '#ff0000', fillColor: '#ff0000'}); // Turn fence red on SOS
+                            geofence.setStyle({color: '#ff0000', fillColor: '#ff0000'}); 
                         } else {
                             statusDiv.innerHTML = `BOAT ONLINE | DIST: ${dist}m`;
                             statusDiv.className = "badge";
@@ -117,6 +121,7 @@
                             geofence.setStyle({color: '#00f2ff', fillColor: '#00f2ff'});
                         }
 
+                        // Check Boundary Violation
                         if (dist > 0.1 && dist <= ALERT_THRESHOLD) {
                             warnDiv.style.display = "flex";
                             warnDiv.innerHTML = `VIOLATION: ${dist}m`;
