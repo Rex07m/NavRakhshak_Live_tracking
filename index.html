@@ -6,13 +6,31 @@
     <style>
         #map { height: 80vh; width: 100%; border-radius: 10px; border: 2px solid #34495e; box-shadow: 0 4px 20px rgba(0,0,0,0.6); }
         body { font-family: 'Segoe UI', Arial, sans-serif; background: #0f0f0f; color: white; margin: 0; padding: 20px; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 2px solid #00f2ff; padding-bottom: 10px; }
-        .status-box { display: flex; gap: 10px; }
-        .badge { padding: 10px 15px; border-radius: 5px; font-weight: bold; text-transform: uppercase; font-size: 14px; transition: 0.3s; display: flex; align-items: center; }
-        #status { background: #1c2833; border: 1px solid #34495e; }
-        #warning { background: #e67e22; display: none; border: 1px solid #fff; }
         
-        /* Animation for SOS */
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 2px solid #00f2ff; padding-bottom: 10px; flex-wrap: wrap; }
+        
+        .status-box { display: flex; gap: 10px; flex-wrap: wrap; }
+        
+        /* Fixed Badge CSS for Coordinate Visibility */
+        .badge { 
+            padding: 12px 20px; 
+            border-radius: 5px; 
+            font-weight: bold; 
+            text-transform: uppercase; 
+            font-size: 14px; 
+            transition: 0.3s; 
+            display: flex; 
+            align-items: center;
+            justify-content: center;
+            min-width: 280px; /* Ensures space for Lat/Lon text */
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        #status { background: #1c2833; border: 1px solid #34495e; }
+        #warning { background: #e67e22; display: none; border: 1px solid #fff; min-width: 200px; }
+        
+        /* SOS Animation */
         .alert-flash { animation: blinker 0.6s linear infinite; background: #ff0000 !important; color: white !important; box-shadow: 0 0 20px #ff0000; }
         @keyframes blinker { 50% { opacity: 0.4; } }
         
@@ -21,9 +39,9 @@
 </head>
 <body>
     <div class="header">
-        <h1>NAVRAKHSHAK <span style="color: #00f2ff; font-size: 18px;">SECURE ZONE MONITOR</span></h1>
+        <h1>NAVRAKHSHAK <span style="color: #00f2ff; font-size: 18px;">SECURE MONITOR</span></h1>
         <div class="status-box">
-            <div id="status" class="badge">SYSTEM READY</div>
+            <div id="status" class="badge">SYSTEM INITIALIZING...</div>
             <div id="warning" class="badge">BOUNDARY ALERT</div>
         </div>
     </div>
@@ -44,18 +62,15 @@
             [23.13161, 88.54742], [23.13153, 88.54736], [23.1315, 88.54711], [23.13168, 88.54701]
         ];
 
-        // Initialize Map centered on Payradanga
+        // Initialize Map
         var map = L.map('map').setView([23.13168, 88.5472], 19);
         
-        // Google Hybrid Satellite Tiles
-        var googleSat = L.tileLayer('https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}', {
+        L.tileLayer('https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}', {
             maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3']
         }).addTo(map);
 
         // --- GEOFENCE LAYERS ---
-        // Blue Glow Effect
-        var glow = L.polygon(fenceCoords, { color: '#00f2ff', weight: 15, opacity: 0.3, fill: false }).addTo(map);
-        // Main Tech Border
+        L.polygon(fenceCoords, { color: '#00f2ff', weight: 15, opacity: 0.3, fill: false }).addTo(map);
         var geofence = L.polygon(fenceCoords, {
             color: '#00f2ff', 
             weight: 3, 
@@ -66,13 +81,8 @@
 
         // --- BOAT MARKER AND PATH ---
         var boatPath = L.polyline([], {color: '#f1c40f', weight: 4, opacity: 1.0}).addTo(map);
-        
         var boatIcon = L.circleMarker([0, 0], {
-            radius: 10, 
-            color: '#ffffff', 
-            fillColor: '#007bff', 
-            fillOpacity: 1, 
-            weight: 3
+            radius: 10, color: '#ffffff', fillColor: '#007bff', fillOpacity: 1, weight: 3
         }).addTo(map);
 
         var firstLoad = true;
@@ -83,7 +93,7 @@
                 const data = await response.json();
                 const feed = data.feeds[0];
 
-                if (feed.field1 && feed.field2) {
+                if (feed && feed.field1 && feed.field2) {
                     const lat = parseFloat(feed.field1);
                     const lon = parseFloat(feed.field2);
                     const dist = parseFloat(feed.field3); 
@@ -93,8 +103,6 @@
 
                     if (lat !== 0 && lon !== 0) {
                         const currentPos = [lat, lon];
-                        
-                        // Update Marker and Path
                         boatIcon.setLatLng(currentPos);
                         boatPath.addLatLng(currentPos);
 
@@ -106,22 +114,23 @@
                         let statusDiv = document.getElementById('status');
                         let warnDiv = document.getElementById('warning');
 
-                        // SOS and Coordinate Display Logic
+                        // --- CORE LOGIC FIX: DISPLAYING COORDINATES ---
                         if (dist === 0.0) {
-                            statusDiv.innerHTML = `!!! SOS EMERGENCY !!! [${lat.toFixed(5)}, ${lon.toFixed(5)}]`;
+                            statusDiv.innerHTML = `SOS!! LAT:${lat.toFixed(5)} LON:${lon.toFixed(5)}`;
                             statusDiv.className = "badge alert-flash";
                             geofence.setStyle({color: '#ff0000', fillColor: '#ff0000'});
                         } else {
-                            statusDiv.innerHTML = `LIVE | LAT: ${lat.toFixed(5)}, LON: ${lon.toFixed(5)}`;
+                            // This ensures the Latitude and Longitude are printed inside the Green Box
+                            statusDiv.innerHTML = `LIVE | LAT: ${lat.toFixed(5)} | LON: ${lon.toFixed(5)}`;
                             statusDiv.className = "badge";
                             statusDiv.style.background = "#27ae60";
                             geofence.setStyle({color: '#00f2ff', fillColor: '#00f2ff'});
                         }
 
-                        // Boundary Warning Logic
+                        // Warning Logic
                         if (dist > 0.1 && dist <= ALERT_THRESHOLD) {
                             warnDiv.style.display = "flex";
-                            warnDiv.innerHTML = `WARNING: ${dist}m TO BORDER`;
+                            warnDiv.innerHTML = `WARNING: ${dist.toFixed(1)}M TO BORDER`;
                             boatIcon.setStyle({fillColor: '#ff9900'});
                         } else {
                             warnDiv.style.display = "none";
