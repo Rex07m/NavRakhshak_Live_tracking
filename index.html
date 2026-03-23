@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>NavRakhshak | Global Maritime Safety</title>
+    <title>NavRakhshak | Live Tracking</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         #map { height: 80vh; width: 100%; border-radius: 10px; border: 2px solid #34495e; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
@@ -12,52 +12,76 @@
         #status { background: #34495e; }
         #warning { background: #7f8c8d; display: none; }
         
-        /* Animation for SOS */
         .alert-flash { animation: blinker 0.6s linear infinite; background: #c0392b !important; color: white !important; border: 2px solid #fff; }
         @keyframes blinker { 50% { opacity: 0.3; } }
         
-        .info-panel { margin-top: 10px; font-size: 12px; color: #bdc3c7; }
+        .info-panel { margin-top: 10px; font-size: 12px; color: #bdc3c7; display: flex; justify-content: space-between; }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>NAVRAKHSHAK <span style="color: #2ecc71; font-size: 18px;">LIVE TRACKING</span></h1>
+        <h1>NAVRAKHSHAK <span style="color: #2ecc71; font-size: 18px;">LIVE MONITORING</span></h1>
         <div class="status-box">
             <div id="status" class="badge">INITIALIZING...</div>
-            <div id="warning" class="badge">BOUNDARY ALERT</div>
+            <div id="warning" class="badge">BOUNDARY VIOLATION</div>
         </div>
     </div>
     
     <div id="map"></div>
-    <div class="info-panel" id="last-sync">Last Cloud Sync: Never</div>
+    <div class="info-panel">
+        <div id="last-sync">Last Boat Update: Waiting...</div>
+        <div>Geofence: <span style="color:#2ecc71">ACTIVE</span></div>
+    </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // --- CONFIGURATION (MATCHING YOUR HARDWARE) ---
+        // --- SETTINGS ---
         const channelID = "3300600"; 
         const readKey = "M8RQ5ECSRWHF5ZRE";
-        const ALERT_THRESHOLD = 15.0; // Matching your code's 15m alert
+        const ALERT_THRESHOLD = 15.0; 
 
-        // Geo-Fence Boundary (Your coordinates)
+        // Your exact coordinates from Transmitter code
         const fenceCoords = [
-            [23.13184, 88.54711], [23.13184, 88.54735], [23.13175, 88.54746],
-            [23.13161, 88.54742], [23.13153, 88.54736], [23.1315, 88.54711], [23.13168, 88.54701]
+            [23.13184, 88.54711], 
+            [23.13184, 88.54735], 
+            [23.13175, 88.54746],
+            [23.13161, 88.54742], 
+            [23.13153, 88.54736], 
+            [23.1315, 88.54711], 
+            [23.13168, 88.54701]
         ];
 
         // Initialize Map
-        var map = L.map('map').setView([23.1316, 88.5472], 18);
+        var map = L.map('map').setView([23.1316, 88.5472], 19);
         
-        // Using Google Hybrid (Satellite + Labels)
-        L.tileLayer('https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}', {
-            maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3']
+        L.tileLayer('https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+            maxZoom: 20, 
+            subdomains:['mt0','mt1','mt2','mt3'],
+            attribution: 'Google Satellite'
         }).addTo(map);
 
-        // Draw Geo-Fence (Matching your project's border)
-        L.polygon(fenceCoords, {color: '#2ecc71', weight: 3, fillOpacity: 0.2}).addTo(map);
+        // --- DRAW GEOFENCE ---
+        // Green Polygon for Safe Zone / Red for Border
+        var geofence = L.polygon(fenceCoords, {
+            color: '#2ecc71', 
+            weight: 4, 
+            fillColor: '#2ecc71',
+            fillOpacity: 0.15
+        }).addTo(map);
+        
+        // Add a tooltip to the geofence
+        geofence.bindTooltip("PERMITTED FISHING ZONE", {permanent: false, direction:"center"});
 
-        // Boat Marker & Trail
-        var boatIcon = L.circleMarker([0, 0], {radius: 8, color: 'white', fillColor: '#3498db', fillOpacity: 1, weight: 2}).addTo(map);
-        var boatPath = L.polyline([], {color: '#f1c40f', weight: 3, dashArray: '5, 10'}).addTo(map);
+        // Boat Assets
+        var boatIcon = L.circleMarker([0, 0], {
+            radius: 9, 
+            color: 'white', 
+            fillColor: '#3498db', 
+            fillOpacity: 1, 
+            weight: 3
+        }).addTo(map);
+        
+        var boatPath = L.polyline([], {color: '#f1c40f', weight: 3}).addTo(map);
         var firstLoad = true;
 
         async function updateData() {
@@ -66,13 +90,13 @@
                 const data = await response.json();
                 const feed = data.feeds[0];
 
-                if (feed.field1 && feed.field2) {
+                if (feed && feed.field1 && feed.field2) {
                     const lat = parseFloat(feed.field1);
                     const lon = parseFloat(feed.field2);
                     const dist = parseFloat(feed.field3); 
                     const timestamp = new Date(feed.created_at).toLocaleTimeString();
 
-                    document.getElementById('last-sync').innerHTML = `Last Boat Update: ${timestamp} | Data Sync: OK`;
+                    document.getElementById('last-sync').innerHTML = `Last Boat Update: ${timestamp}`;
 
                     if (lat !== 0 && lon !== 0) {
                         const currentPos = [lat, lon];
@@ -87,37 +111,36 @@
                         let statusDiv = document.getElementById('status');
                         let warnDiv = document.getElementById('warning');
 
-                        // --- LOGIC SYNCED WITH HARDWARE ---
-                        
-                        // 1. SOS DETECTION (Distance is 0.0 during Manual SOS)
+                        // SOS HANDLING
                         if (dist === 0.0) {
                             statusDiv.innerHTML = "!!! SOS EMERGENCY !!!";
                             statusDiv.className = "badge alert-flash";
-                            map.panTo(currentPos); // Lock camera on SOS
+                            boatIcon.setStyle({fillColor: '#c0392b', radius: 12});
+                            map.panTo(currentPos);
                         } else {
-                            statusDiv.innerHTML = `BOAT ACTIVE | DIST: ${dist}m`;
+                            statusDiv.innerHTML = `BOAT ONLINE | ${dist}m TO BORDER`;
                             statusDiv.className = "badge";
                             statusDiv.style.background = "#27ae60";
                         }
 
-                        // 2. BOUNDARY ALERT (Within 15 meters)
+                        // BOUNDARY ALERT (Matches ESP32 15m threshold)
                         if (dist > 0.1 && dist <= ALERT_THRESHOLD) {
                             warnDiv.style.display = "flex";
-                            warnDiv.innerHTML = `BOUNDARY VIOLATION: ${dist}m`;
+                            warnDiv.innerHTML = `DANGER: ${dist}m`;
                             warnDiv.style.background = "#e67e22";
-                            boatIcon.setStyle({fillColor: '#e67e22'});
+                            geofence.setStyle({color: '#e74c3c', fillColor: '#e74c3c'}); // Turn fence Red
                         } else {
                             warnDiv.style.display = "none";
-                            boatIcon.setStyle({fillColor: '#3498db'});
+                            geofence.setStyle({color: '#2ecc71', fillColor: '#2ecc71'}); // Keep fence Green
+                            if(dist !== 0.0) boatIcon.setStyle({fillColor: '#3498db', radius: 9});
                         }
                     }
                 }
             } catch (error) {
-                console.log("Waiting for Cloud Data...");
+                console.log("Syncing...");
             }
         }
 
-        // ThingSpeak free tier refresh is 15s
         setInterval(updateData, 15000);
         updateData();
     </script>
