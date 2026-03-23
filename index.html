@@ -12,6 +12,7 @@
         #status { background: #1c2833; border: 1px solid #34495e; }
         #warning { background: #e67e22; display: none; border: 1px solid #fff; }
         
+        /* Animation for SOS */
         .alert-flash { animation: blinker 0.6s linear infinite; background: #ff0000 !important; color: white !important; box-shadow: 0 0 20px #ff0000; }
         @keyframes blinker { 50% { opacity: 0.4; } }
         
@@ -32,6 +33,7 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
+        // --- CONFIGURATION ---
         const channelID = "3300600"; 
         const readKey = "M8RQ5ECSRWHF5ZRE";
         const ALERT_THRESHOLD = 15.0; 
@@ -42,7 +44,7 @@
             [23.13161, 88.54742], [23.13153, 88.54736], [23.1315, 88.54711], [23.13168, 88.54701]
         ];
 
-        // Initialize Map centered on your coordinates
+        // Initialize Map centered on Payradanga
         var map = L.map('map').setView([23.13168, 88.5472], 19);
         
         // Google Hybrid Satellite Tiles
@@ -50,10 +52,10 @@
             maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3']
         }).addTo(map);
 
-        // --- GEOFENCE LAYERS (The Highlighted Box) ---
-        // Blue Glow
+        // --- GEOFENCE LAYERS ---
+        // Blue Glow Effect
         var glow = L.polygon(fenceCoords, { color: '#00f2ff', weight: 15, opacity: 0.3, fill: false }).addTo(map);
-        // Main Border
+        // Main Tech Border
         var geofence = L.polygon(fenceCoords, {
             color: '#00f2ff', 
             weight: 3, 
@@ -94,7 +96,7 @@
                         
                         // Update Marker and Path
                         boatIcon.setLatLng(currentPos);
-                        boatPath.addLatLng(currentPos); // THIS DRAWS THE YELLOW PATH
+                        boatPath.addLatLng(currentPos);
 
                         if (firstLoad) {
                             map.setView(currentPos, 19);
@@ -104,13 +106,13 @@
                         let statusDiv = document.getElementById('status');
                         let warnDiv = document.getElementById('warning');
 
-                        // SOS Logic
+                        // SOS and Coordinate Display Logic
                         if (dist === 0.0) {
-                            statusDiv.innerHTML = "!!! SOS EMERGENCY !!!";
+                            statusDiv.innerHTML = `!!! SOS EMERGENCY !!! [${lat.toFixed(5)}, ${lon.toFixed(5)}]`;
                             statusDiv.className = "badge alert-flash";
                             geofence.setStyle({color: '#ff0000', fillColor: '#ff0000'});
                         } else {
-                            statusDiv.innerHTML = `BOAT ONLINE | DIST: ${dist}m`;
+                            statusDiv.innerHTML = `LIVE | LAT: ${lat.toFixed(5)}, LON: ${lon.toFixed(5)}`;
                             statusDiv.className = "badge";
                             statusDiv.style.background = "#27ae60";
                             geofence.setStyle({color: '#00f2ff', fillColor: '#00f2ff'});
