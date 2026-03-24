@@ -53,16 +53,21 @@
         const readKey = "M8RQ5ECSRWHF5ZRE";
         const ALERT_THRESHOLD = 15.0; 
 
+        // --- UPDATED COORDINATES (KALYANI) ---
         const fenceCoords = [
             [22.96007, 88.44729], [22.96001, 88.44775], [22.95989, 88.44819],
-            [22.9595, 88.44811], [22.95902, 88.44795], [22.95913, 88.4475], [22.9592, 88.44711], [22.95968, 88.44717];
+            [22.9595, 88.44811], [22.95902, 88.44795], [22.95913, 88.4475], 
+            [22.9592, 88.44711], [22.95968, 88.44717]
+        ];
 
-        var map = L.map('map').setView([23.13168, 88.5472], 19);
+        // Center map on the new location
+        var map = L.map('map').setView([22.9596, 88.4476], 19);
         
         L.tileLayer('https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}', {
             maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3']
         }).addTo(map);
 
+        // Geofence Visuals
         L.polygon(fenceCoords, { color: '#00f2ff', weight: 15, opacity: 0.3, fill: false }).addTo(map);
         var geofence = L.polygon(fenceCoords, {
             color: '#00f2ff', 
@@ -106,7 +111,6 @@
                         let statusDiv = document.getElementById('status');
                         let warnDiv = document.getElementById('warning');
 
-                        // --- UPDATED LOGIC: SHOW COORDINATES IN THE PRIMARY BOX ---
                         if (dist === 0.0) {
                             statusDiv.innerHTML = `!!! SOS !!! LAT:${lat.toFixed(5)} LON:${lon.toFixed(5)}`;
                             statusDiv.className = "badge alert-flash";
@@ -118,7 +122,6 @@
                             geofence.setStyle({color: '#00f2ff', fillColor: '#00f2ff'});
                         }
 
-                        // Warning Logic (Distance stays here for emergency alert)
                         if (dist > 0.1 && dist <= ALERT_THRESHOLD) {
                             warnDiv.style.display = "flex";
                             warnDiv.innerHTML = `WARNING: ${dist.toFixed(1)}M TO BORDER`;
