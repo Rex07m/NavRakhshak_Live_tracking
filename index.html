@@ -20,7 +20,6 @@
         #status { background: #1c2833; border: 1px solid #34495e; }
         #warning { background: #e67e22; display: none; border: 1px solid #fff; }
         
-        /* --- NEW CONTROL PANEL STYLES --- */
         .control-panel { 
             background: #1c2833; padding: 15px; border-radius: 10px; margin-top: 15px;
             display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px;
@@ -64,11 +63,11 @@
         </div>
         <div>
             <label>Radius (m):</label><br>
-            <input type="number" id="cmdRad" placeholder="15">
+            <input type="number" id="cmdRad" placeholder="50">
         </div>
         <div>
             <label>Buffer (m):</label><br>
-            <input type="number" id="cmdBuf" placeholder="5">
+            <input type="number" id="cmdBuf" placeholder="10">
         </div>
         <div style="display:flex; align-items: flex-end;">
             <button onclick="updateGeofence()">UPDATE BOAT FENCE</button>
@@ -81,17 +80,26 @@
     <script>
         const channelID = "3300600"; 
         const readKey = "M8RQ5ECSRWHF5ZRE";
-        const talkBackID = "56620"; // Get this from ThingSpeak Apps -> TalkBack
+        const talkBackID = "56620"; 
         const talkBackKey = "6H22BCX9X5LZ8II6";
 
         var map = L.map('map').setView([22.9596, 88.4476], 19);
+        
         L.tileLayer('https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}', {
             maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3']
         }).addTo(map);
 
         var boatPath = L.polyline([], {color: '#f1c40f', weight: 4}).addTo(map);
         var boatIcon = L.circleMarker([0, 0], { radius: 10, color: '#fff', fillColor: '#007bff', fillOpacity: 1 }).addTo(map);
-        var visualFence = L.circle([22.9596, 88.4476], { radius: 15, color: '#00f2ff', fillOpacity: 0.1 }).addTo(map);
+        
+        // Initial Visual Fence
+        var visualFence = L.circle([22.9596, 88.4476], { 
+            radius: 15, 
+            color: '#00f2ff', 
+            weight: 2,
+            fillColor: '#00f2ff',
+            fillOpacity: 0.1 
+        }).addTo(map);
 
         async function updateData() {
             try {
@@ -108,7 +116,6 @@
                     boatPath.addLatLng([lat, lon]);
                     document.getElementById('last-sync').innerText = `Last Sync: ${new Date(feed.created_at).toLocaleTimeString()}`;
                     
-                    // Logic for Status Badges
                     let statusDiv = document.getElementById('status');
                     if (dist === 0.0) {
                         statusDiv.className = "badge alert-flash";
@@ -122,18 +129,20 @@
             } catch (e) { console.error("Sync Error", e); }
         }
 
-        // NEW: SEND COMMAND TO THINGSPEAK TALKBACK
         async function updateGeofence() {
-            const lat = document.getElementById('cmdLat').value;
-            const lon = document.getElementById('cmdLon').value;
-            const rad = document.getElementById('cmdRad').value;
-            const buf = document.getElementById('cmdBuf').value;
+            const latStr = document.getElementById('cmdLat').value;
+            const lonStr = document.getElementById('cmdLon').value;
+            const radStr = document.getElementById('cmdRad').value;
+            const bufStr = document.getElementById('cmdBuf').value;
 
-            if(!lat || !lon || !rad) return alert("Please fill all fields");
+            if(!latStr || !lonStr || !radStr) return alert("Please fill Center Lat, Center Lon, and Radius");
 
-            const commandString = `SET:${lat},${lon},${rad},${buf}`;
+            const lat = parseFloat(latStr);
+            const lon = parseFloat(lonStr);
+            const rad = parseFloat(radStr);
+
+            const commandString = `SET:${lat},${lon},${rad},${bufStr || 5}`;
             
-            // ThingSpeak TalkBack API Call
             const url = `https://api.thingspeak.com/talkbacks/${talkBackID}/commands.json`;
             const params = new URLSearchParams();
             params.append('api_key', talkBackKey);
@@ -142,9 +151,12 @@
             try {
                 const res = await fetch(url, { method: 'POST', body: params });
                 if(res.ok) {
-                    alert("Command Sent! Boat will sync in < 20 seconds.");
+                    // Update Map Visually Immediately
                     visualFence.setLatLng([lat, lon]);
-                    visualFence.setRadius(parseFloat(rad));
+                    visualFence.setRadius(rad);
+                    map.panTo([lat, lon]); // Smooth slide to the new fence
+                    
+                    alert("Command Sent! Boat will sync in < 20 seconds.");
                 }
             } catch(e) { alert("Failed to send command."); }
         }
