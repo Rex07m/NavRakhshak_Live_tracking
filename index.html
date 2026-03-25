@@ -1,33 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>NavRakhshak | Secure Monitor</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        #map { height: 60vh; width: 100%; border-radius: 10px; border: 2px solid #34495e; box-shadow: 0 4px 20px rgba(0,0,0,0.6); }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #0f0f0f; color: white; margin: 0; padding: 20px; }
+        
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 2px solid #00f2ff; padding-bottom: 10px; flex-wrap: wrap; }
+        
+        .badge { 
+            padding: 12px 20px; border-radius: 5px; font-weight: bold; text-transform: uppercase; 
+            font-size: 14px; transition: 0.3s; display: flex; align-items: center; justify-content: center;
+            min-width: 180px; text-align: center;
+        }
+
+        #status { background: #1c2833; border: 1px solid #34495e; }
+        
+        .control-panel { 
+            background: #1c2833; padding: 15px; border-radius: 10px; margin-top: 15px;
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px;
+            border: 1px solid #00f2ff;
+        }
+        .control-panel label { font-size: 11px; color: #00f2ff; font-weight: bold; }
+        .control-panel input { 
+            background: #0f0f0f; border: 1px solid #34495e; color: #fff; 
+            padding: 8px; border-radius: 5px; width: 85%;
+        }
+        .btn {
+            border: none; padding: 12px; border-radius: 5px; font-weight: bold; cursor: pointer; transition: 0.3s; color: #000;
+        }
+        .btn-sync { background: #00f2ff; }
+        .btn-sos { background: #ff4757; color: white; display: none; }
+        .btn-clear { background: #747d8c; color: white; margin-top: 5px; font-size: 10px; padding: 5px 10px; }
+        
+        .btn:hover { opacity: 0.8; transform: scale(1.02); }
+        
+        .alert-flash { animation: blinker 0.6s linear infinite; background: #ff0000 !important; color: white !important; }
+        @keyframes blinker { 50% { opacity: 0.4; } }
+        
+        .footer-info { display: flex; justify-content: space-between; margin-top: 10px; font-size: 12px; color: #888; }
+        .coord-display { font-family: monospace; color: #00f2ff; font-size: 14px; margin-top: 5px; }
+    </style>
+</head>
 <body>
     <div class="header">
-        <h1>NAVRAKHSHAK <span style="color: #00f2ff; font-size: 16px;">V3.0 DYNAMIC</span></h1>
+        <h1>NAVRAKHSHAK <span style="color: #00f2ff; font-size: 14px;">MARITIME GATEWAY</span></h1>
         <div style="display: flex; gap: 10px;">
-            <div id="status" class="badge">CONNECTING...</div>
-            <div id="warning" class="badge">PROXIMITY ALERT</div>
+            <div id="status" class="badge">INITIALIZING...</div>
+            <button id="sosFeedbackBtn" class="badge btn-sos" onclick="acknowledgeSOS()">ACKNOWLEDGE SOS</button>
         </div>
     </div>
     
     <div id="map"></div>
+    <button class="btn btn-clear" onclick="clearPath()">CLEAR PATH HISTORY</button>
+    <div id="boatCoords" class="coord-display">Boat Position: Waiting for Signal...</div>
 
     <div class="control-panel">
         <div>
             <label>Fence Center Lat:</label>
-            <input type="number" id="cmdLat" step="0.000001" placeholder="Fetching...">
+            <input type="number" id="cmdLat" step="0.000001" placeholder="Lat">
         </div>
         <div>
             <label>Fence Center Lon:</label>
-            <input type="number" id="cmdLon" step="0.000001" placeholder="Fetching...">
+            <input type="number" id="cmdLon" step="0.000001" placeholder="Lon">
         </div>
         <div>
             <label>Total Radius (m):</label>
-            <input type="number" id="cmdRad" placeholder="Fetching...">
+            <input type="number" id="cmdRad" placeholder="Radius">
         </div>
         <div>
             <label>Safety Buffer (m):</label>
-            <input type="number" id="cmdBuf" placeholder="Fetching...">
+            <input type="number" id="cmdBuf" placeholder="Buffer">
         </div>
         <div style="display:flex; align-items: flex-end;">
-            <button onclick="updateGeofence()">SYNC NEW BOUNDARY</button>
+            <button class="btn btn-sync" onclick="updateGeofence()">SYNC BOUNDARY</button>
         </div>
     </div>
 
@@ -53,29 +100,22 @@
         var visualFence = L.circle([0,0], { radius: 0, color: '#ff0000', weight: 2, fillOpacity: 0.05 }).addTo(map);
         var safetyRing = L.circle([0,0], { radius: 0, color: '#00f2ff', weight: 1, dashArray: '5, 10', fillOpacity: 0 }).addTo(map);
 
-        // --- NEW: FETCH LAST COMMAND ON PAGE LOAD ---
         async function fetchCurrentSettings() {
             try {
-                // Fetch the last 1 command from TalkBack history
                 const res = await fetch(`https://api.thingspeak.com/talkbacks/${talkBackID}/commands.json?api_key=${talkBackKey}&results=1`);
                 const data = await res.json();
-                
                 if (data.length > 0) {
-                    const cmd = data[0].command_string; // e.g., "SET:23.131,88.547,50,7"
-                    const parts = cmd.replace("SET:", "").split(",");
-                    
-                    if (parts.length === 4) {
+                    const cmd = data[0].command_string;
+                    if(cmd.startsWith("SET:")) {
+                        const parts = cmd.replace("SET:", "").split(",");
                         document.getElementById('cmdLat').value = parts[0];
                         document.getElementById('cmdLon').value = parts[1];
                         document.getElementById('cmdRad').value = parts[2];
                         document.getElementById('cmdBuf').value = parts[3];
-                        
-                        // Update Map visuals to match
                         updateMapVisuals(parts[0], parts[1], parts[2], parts[3]);
-                        document.getElementById('cmd-status').innerText = "Settings Loaded from Cloud";
                     }
                 }
-            } catch (e) { console.error("Error fetching settings", e); }
+            } catch (e) { console.error(e); }
         }
 
         function updateMapVisuals(lat, lon, rad, buf) {
@@ -83,7 +123,7 @@
             visualFence.setRadius(parseFloat(rad));
             safetyRing.setLatLng([lat, lon]);
             safetyRing.setRadius(parseFloat(rad) - parseFloat(buf));
-            map.setView([lat, lon], 18);
+            map.panTo([lat, lon]);
         }
 
         async function updateData() {
@@ -99,19 +139,28 @@
                     
                     boatIcon.setLatLng([lat, lon]);
                     boatPath.addLatLng([lat, lon]);
+                    document.getElementById('boatCoords').innerText = `Boat Position: Lat ${lat.toFixed(6)}, Lon ${lon.toFixed(6)}`;
                     document.getElementById('last-sync').innerText = `Last Data Sync: ${new Date(feed.created_at).toLocaleTimeString()}`;
                     
                     let statusDiv = document.getElementById('status');
-                    if (statusMsg.includes("SOS") || statusMsg.includes("ALERT")) {
+                    let sosBtn = document.getElementById('sosFeedbackBtn');
+
+                    if (statusMsg.includes("SOS")) {
                         statusDiv.className = "badge alert-flash";
-                        statusDiv.innerHTML = "!!! BOAT ALERT !!!";
+                        statusDiv.innerHTML = "!!! SOS RECEIVED !!!";
+                        sosBtn.style.display = "flex"; // Show Acknowledge button
+                    } else if (statusMsg.includes("ALERT")) {
+                        statusDiv.className = "badge alert-flash";
+                        statusDiv.innerHTML = "BOUNDARY BREACH";
+                        sosBtn.style.display = "none";
                     } else {
                         statusDiv.className = "badge";
                         statusDiv.style.background = "#27ae60";
                         statusDiv.innerHTML = "BOAT SAFE";
+                        sosBtn.style.display = "none";
                     }
                 }
-            } catch (e) { console.error("Update Error", e); }
+            } catch (e) { console.error(e); }
         }
 
         async function updateGeofence() {
@@ -119,28 +168,36 @@
             const lon = document.getElementById('cmdLon').value;
             const rad = document.getElementById('cmdRad').value;
             const buf = document.getElementById('cmdBuf').value;
-
-            document.getElementById('cmd-status').innerText = "Command Status: Sending...";
-
             const commandString = `SET:${lat},${lon},${rad},${buf}`;
+            sendCommand(commandString, "Boundary Synced");
+            updateMapVisuals(lat, lon, rad, buf);
+        }
+
+        async function acknowledgeSOS() {
+            // Sends a command that the Receiver node will broadcast via LoRa
+            sendCommand("ACK_SOS", "SOS Acknowledged - Signal Sent to Boat");
+            alert("Acknowledgement Sent! The boat's LED/Buzzer will flash to confirm you are coming.");
+        }
+
+        async function sendCommand(cmdStr, successMsg) {
+            document.getElementById('cmd-status').innerText = "Sending Command...";
             const url = `https://api.thingspeak.com/talkbacks/${talkBackID}/commands.json`;
             const params = new URLSearchParams();
             params.append('api_key', talkBackKey);
-            params.append('command_string', commandString);
-
+            params.append('command_string', cmdStr);
             try {
                 const res = await fetch(url, { method: 'POST', body: params });
-                if(res.ok) {
-                    updateMapVisuals(lat, lon, rad, buf);
-                    document.getElementById('cmd-status').innerText = "Command Status: Sent to Cloud";
-                    alert("Fence Updated! Boat will sync shortly.");
-                }
-            } catch(e) { document.getElementById('cmd-status').innerText = "Command Status: Error"; }
+                if(res.ok) document.getElementById('cmd-status').innerText = "Status: " + successMsg;
+            } catch(e) { document.getElementById('cmd-status').innerText = "Status: Error"; }
         }
 
-        // Initialize
-        fetchCurrentSettings(); // Load what's already on the cloud
+        function clearPath() {
+            boatPath.setLatLngs([]);
+        }
+
+        fetchCurrentSettings();
         setInterval(updateData, 15000);
         updateData();
     </script>
 </body>
+</html>
