@@ -1,20 +1,18 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>NavRakhshak | Global Maritime Safety</title>
+    <title>NavRakhshak | Secure Monitor</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
-        #map { height: 70vh; width: 100%; border-radius: 10px; border: 2px solid #34495e; box-shadow: 0 4px 20px rgba(0,0,0,0.6); }
+        #map { height: 65vh; width: 100%; border-radius: 10px; border: 2px solid #34495e; box-shadow: 0 4px 20px rgba(0,0,0,0.6); }
         body { font-family: 'Segoe UI', Arial, sans-serif; background: #0f0f0f; color: white; margin: 0; padding: 20px; }
         
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 2px solid #00f2ff; padding-bottom: 10px; flex-wrap: wrap; }
         
-        .status-box { display: flex; gap: 10px; flex-wrap: wrap; }
-        
         .badge { 
             padding: 12px 20px; border-radius: 5px; font-weight: bold; text-transform: uppercase; 
             font-size: 14px; transition: 0.3s; display: flex; align-items: center; justify-content: center;
-            min-width: 200px; text-align: center; white-space: nowrap;
+            min-width: 200px; text-align: center;
         }
 
         #status { background: #1c2833; border: 1px solid #34495e; }
@@ -25,28 +23,29 @@
             display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px;
             border: 1px solid #00f2ff;
         }
+        .control-panel label { font-size: 12px; color: #00f2ff; font-weight: bold; }
         .control-panel input { 
-            background: #0f0f0f; border: 1px solid #34495e; color: #00f2ff; 
-            padding: 8px; border-radius: 5px; outline: none;
+            background: #0f0f0f; border: 1px solid #34495e; color: #fff; 
+            padding: 8px; border-radius: 5px; width: 90%;
         }
         .control-panel button {
-            background: #00f2ff; color: #000; border: none; padding: 10px; 
+            background: #00f2ff; color: #000; border: none; padding: 12px; 
             border-radius: 5px; font-weight: bold; cursor: pointer; transition: 0.3s;
         }
-        .control-panel button:hover { background: #008fb3; }
+        .control-panel button:hover { background: #fff; box-shadow: 0 0 10px #00f2ff; }
         
-        .alert-flash { animation: blinker 0.6s linear infinite; background: #ff0000 !important; color: white !important; box-shadow: 0 0 20px #ff0000; }
+        .alert-flash { animation: blinker 0.6s linear infinite; background: #ff0000 !important; color: white !important; }
         @keyframes blinker { 50% { opacity: 0.4; } }
         
-        .info-panel { margin-top: 10px; font-size: 12px; color: #888; font-style: italic; }
+        .footer-info { display: flex; justify-content: space-between; margin-top: 10px; font-size: 12px; color: #888; }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>NAVRAKHSHAK <span style="color: #00f2ff; font-size: 18px;">SECURE MONITOR</span></h1>
-        <div class="status-box">
-            <div id="status" class="badge">SYSTEM READY</div>
-            <div id="warning" class="badge">BOUNDARY ALERT</div>
+        <h1>NAVRAKHSHAK <span style="color: #00f2ff; font-size: 16px;">V3.0 DYNAMIC</span></h1>
+        <div style="display: flex; gap: 10px;">
+            <div id="status" class="badge">CONNECTING...</div>
+            <div id="warning" class="badge">PROXIMITY ALERT</div>
         </div>
     </div>
     
@@ -54,27 +53,30 @@
 
     <div class="control-panel">
         <div>
-            <label>Center Lat:</label><br>
-            <input type="number" id="cmdLat" step="0.00001" placeholder="22.9596">
+            <label>Fence Center Lat:</label>
+            <input type="number" id="cmdLat" step="0.000001" value="23.13161">
         </div>
         <div>
-            <label>Center Lon:</label><br>
-            <input type="number" id="cmdLon" step="0.00001" placeholder="88.4476">
+            <label>Fence Center Lon:</label>
+            <input type="number" id="cmdLon" step="0.000001" value="88.54735">
         </div>
         <div>
-            <label>Radius (m):</label><br>
-            <input type="number" id="cmdRad" placeholder="50">
+            <label>Total Radius (m):</label>
+            <input type="number" id="cmdRad" value="50">
         </div>
         <div>
-            <label>Buffer (m):</label><br>
-            <input type="number" id="cmdBuf" placeholder="10">
+            <label>Safety Buffer (m):</label>
+            <input type="number" id="cmdBuf" value="7">
         </div>
         <div style="display:flex; align-items: flex-end;">
-            <button onclick="updateGeofence()">UPDATE BOAT FENCE</button>
+            <button onclick="updateGeofence()">SYNC NEW BOUNDARY</button>
         </div>
     </div>
 
-    <div class="info-panel" id="last-sync">Waiting for LoRa Gateway...</div>
+    <div class="footer-info">
+        <span id="last-sync">Last Data Sync: --:--:--</span>
+        <span id="cmd-status">Command Status: Idle</span>
+    </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
@@ -83,22 +85,22 @@
         const talkBackID = "56620"; 
         const talkBackKey = "6H22BCX9X5LZ8II6";
 
-        var map = L.map('map').setView([22.9596, 88.4476], 19);
-        
+        var map = L.map('map').setView([23.13161, 88.54735], 18);
         L.tileLayer('https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}', {
             maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3']
         }).addTo(map);
 
-        var boatPath = L.polyline([], {color: '#f1c40f', weight: 4}).addTo(map);
-        var boatIcon = L.circleMarker([0, 0], { radius: 10, color: '#fff', fillColor: '#007bff', fillOpacity: 1 }).addTo(map);
+        var boatPath = L.polyline([], {color: '#f1c40f', weight: 3}).addTo(map);
+        var boatIcon = L.circleMarker([0, 0], { radius: 8, color: '#fff', fillColor: '#007bff', fillOpacity: 1 }).addTo(map);
         
-        // Initial Visual Fence
-        var visualFence = L.circle([22.9596, 88.4476], { 
-            radius: 15, 
-            color: '#00f2ff', 
-            weight: 2,
-            fillColor: '#00f2ff',
-            fillOpacity: 0.1 
+        // Outer Danger Boundary
+        var visualFence = L.circle([23.13161, 88.54735], { 
+            radius: 50, color: '#ff0000', weight: 2, fillOpacity: 0.05 
+        }).addTo(map);
+
+        // Inner Safety Alert Ring (Radius - Buffer)
+        var safetyRing = L.circle([23.13161, 88.54735], { 
+            radius: 43, color: '#00f2ff', weight: 1, dashArray: '5, 10', fillOpacity: 0 
         }).addTo(map);
 
         async function updateData() {
@@ -110,39 +112,34 @@
                 if (feed && feed.field1) {
                     const lat = parseFloat(feed.field1);
                     const lon = parseFloat(feed.field2);
-                    const dist = parseFloat(feed.field3);
+                    const statusMsg = feed.field3; // Alert status sent by boat
                     
                     boatIcon.setLatLng([lat, lon]);
                     boatPath.addLatLng([lat, lon]);
-                    document.getElementById('last-sync').innerText = `Last Sync: ${new Date(feed.created_at).toLocaleTimeString()}`;
+                    document.getElementById('last-sync').innerText = `Last Data Sync: ${new Date(feed.created_at).toLocaleTimeString()}`;
                     
                     let statusDiv = document.getElementById('status');
-                    if (dist === 0.0) {
+                    if (statusMsg.includes("SOS") || statusMsg.includes("ALERT")) {
                         statusDiv.className = "badge alert-flash";
-                        statusDiv.innerHTML = "!!! SOS ACTIVE !!!";
+                        statusDiv.innerHTML = "!!! BOAT ALERT !!!";
                     } else {
                         statusDiv.className = "badge";
                         statusDiv.style.background = "#27ae60";
-                        statusDiv.innerHTML = "BOAT ONLINE";
+                        statusDiv.innerHTML = "BOAT SAFE";
                     }
                 }
-            } catch (e) { console.error("Sync Error", e); }
+            } catch (e) { console.error("Update Error", e); }
         }
 
         async function updateGeofence() {
-            const latStr = document.getElementById('cmdLat').value;
-            const lonStr = document.getElementById('cmdLon').value;
-            const radStr = document.getElementById('cmdRad').value;
-            const bufStr = document.getElementById('cmdBuf').value;
+            const lat = document.getElementById('cmdLat').value;
+            const lon = document.getElementById('cmdLon').value;
+            const rad = document.getElementById('cmdRad').value;
+            const buf = document.getElementById('cmdBuf').value;
 
-            if(!latStr || !lonStr || !radStr) return alert("Please fill Center Lat, Center Lon, and Radius");
+            document.getElementById('cmd-status').innerText = "Command Status: Sending...";
 
-            const lat = parseFloat(latStr);
-            const lon = parseFloat(lonStr);
-            const rad = parseFloat(radStr);
-
-            const commandString = `SET:${lat},${lon},${rad},${bufStr || 5}`;
-            
+            const commandString = `SET:${lat},${lon},${rad},${buf}`;
             const url = `https://api.thingspeak.com/talkbacks/${talkBackID}/commands.json`;
             const params = new URLSearchParams();
             params.append('api_key', talkBackKey);
@@ -151,14 +148,20 @@
             try {
                 const res = await fetch(url, { method: 'POST', body: params });
                 if(res.ok) {
-                    // Update Map Visually Immediately
+                    // Update Map Circles
                     visualFence.setLatLng([lat, lon]);
-                    visualFence.setRadius(rad);
-                    map.panTo([lat, lon]); // Smooth slide to the new fence
+                    visualFence.setRadius(parseFloat(rad));
                     
-                    alert("Command Sent! Boat will sync in < 20 seconds.");
+                    safetyRing.setLatLng([lat, lon]);
+                    safetyRing.setRadius(parseFloat(rad) - parseFloat(buf));
+                    
+                    map.flyTo([lat, lon], 18);
+                    document.getElementById('cmd-status').innerText = "Command Status: Sent to Cloud";
+                    alert("Fence Updated! Boat will sync shortly.");
                 }
-            } catch(e) { alert("Failed to send command."); }
+            } catch(e) { 
+                document.getElementById('cmd-status').innerText = "Command Status: Error";
+            }
         }
 
         setInterval(updateData, 15000);
