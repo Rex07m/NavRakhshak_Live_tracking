@@ -8,24 +8,22 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
     <style>
         :root {
-            --bg-primary: #f4f4f2; /* Sanrita Light Grey/Cream */
-            --bg-dark: #121212;    /* Carbon Black */
-            --accent: #d4ff00;     /* Neon Lime */
+            --bg-primary: #f4f4f2;
+            --bg-dark: #121212;
+            --accent: #d4ff00;
             --danger: #ff3e3e;
             --text-dark: #1a1a1a;
-            --text-light: #ffffff;
             --border: rgba(0,0,0,0.1);
         }
 
         body, html { margin: 0; padding: 0; height: 100%; font-family: 'Inter', sans-serif; background: var(--bg-primary); color: var(--text-dark); overflow: hidden; }
 
-        /* MULTI-PAGE STRUCTURE */
         .app-container { display: flex; height: 100vh; width: 100vw; }
 
-        /* NAVIGATION BAR (Left) */
+        /* NAV BAR */
         nav { 
             width: 80px; background: var(--bg-dark); display: flex; flex-direction: column; 
-            align-items: center; padding: 20px 0; gap: 30px; z-index: 2000;
+            align-items: center; padding: 20px 0; gap: 30px; z-index: 2000; flex-shrink: 0;
         }
         .nav-item { 
             color: #555; font-size: 20px; cursor: pointer; transition: 0.3s; 
@@ -34,49 +32,48 @@
         .nav-item:hover, .nav-item.active { color: var(--accent); background: rgba(212, 255, 0, 0.1); }
         .nav-item.danger-active { color: var(--danger); animation: pulse-red 1s infinite; }
 
-        /* CONTENT AREAS */
-        .page { display: none; flex-grow: 1; height: 100%; position: relative; animation: fadeIn 0.5s ease; }
+        /* PAGES */
+        .page { display: none; flex-grow: 1; height: 100%; position: relative; overflow-y: auto; padding: 40px; box-sizing: border-box; }
         .page.active { display: flex; flex-direction: column; }
+        #mapPage { padding: 0; } /* Map fills screen */
 
-        /* MAP PAGE */
-        #map { height: 100%; width: 100%; background: #ddd; }
+        #map { height: 100%; width: 100%; }
 
-        /* PANEL BOXES (For Boundary & Security Pages) */
         .panel { 
-            max-width: 600px; margin: auto; background: white; padding: 40px; 
+            max-width: 600px; width: 100%; margin: auto; background: white; padding: 40px; 
             border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.05); 
-            border: 1px solid var(--border);
+            border: 1px solid var(--border); box-sizing: border-box;
         }
-        .header-title { font-size: 42px; font-weight: 900; text-transform: uppercase; letter-spacing: -2px; margin-bottom: 30px; }
+        .header-title { font-size: 42px; font-weight: 900; text-transform: uppercase; letter-spacing: -2px; margin-bottom: 30px; line-height: 1; }
 
-        /* INPUTS & BUTTONS */
         .input-group { margin-bottom: 20px; }
-        label { display: block; font-size: 12px; font-weight: 700; text-transform: uppercase; margin-bottom: 8px; color: #888; }
+        label { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; margin-bottom: 8px; color: #888; }
         input { 
             width: 100%; border: none; background: #f0f0f0; padding: 15px; border-radius: 12px; 
             font-size: 16px; font-weight: 600; box-sizing: border-box;
         }
+
         .btn { 
-            padding: 18px; border-radius: 14px; border: none; font-weight: 800; text-transform: uppercase;
-            cursor: pointer; transition: 0.3s; width: 100%; margin-top: 10px; font-size: 14px;
+            padding: 20px; border-radius: 14px; border: none; font-weight: 800; text-transform: uppercase;
+            cursor: pointer; transition: 0.3s; width: 100%; margin-top: 15px; font-size: 14px;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
         }
         .btn-black { background: var(--bg-dark); color: white; }
         .btn-black:hover { background: #333; transform: scale(1.02); }
-        .btn-black:disabled { opacity: 0.2; cursor: not-allowed; }
+        .btn-black:disabled { background: #ccc; cursor: not-allowed; transform: none; opacity: 0.6; }
 
-        /* STATUS OVERLAYS */
+        /* OVERLAYS */
         .top-status {
-            position: absolute; top: 30px; left: 30px; z-index: 1000;
-            background: var(--bg-dark); color: white; padding: 12px 25px; border-radius: 40px;
-            font-weight: 700; font-size: 12px; letter-spacing: 1px; display: flex; align-items: center; gap: 10px;
+            position: absolute; top: 20px; left: 20px; z-index: 1000;
+            background: var(--bg-dark); color: white; padding: 10px 20px; border-radius: 40px;
+            font-weight: 700; font-size: 11px; display: flex; align-items: center; gap: 10px;
         }
 
         .floating-pos {
-            position: absolute; bottom: 30px; right: 30px; z-index: 1000;
-            background: white; padding: 20px; border-radius: 20px; border: 1px solid var(--border);
+            position: absolute; bottom: 20px; right: 20px; z-index: 1000;
+            background: white; padding: 15px 20px; border-radius: 15px; border: 1px solid var(--border);
         }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(255, 62, 62, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(255, 62, 62, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 62, 62, 0); } }
     </style>
 </head>
@@ -84,61 +81,68 @@
 
 <div class="app-container">
     <nav>
-        <div class="nav-item active" onclick="showPage('mapPage', this)" title="Live Map"><i class="fa-solid fa-map"></i></div>
-        <div class="nav-item" onclick="showPage('boundaryPage', this)" title="Fence Settings"><i class="fa-solid fa-arrows-to-dot"></i></div>
-        <div id="sosNav" class="nav-item" onclick="acknowledgeSOS()" title="SOS Status"><i class="fa-solid fa-kit-medical"></i></div>
-        <div class="nav-item" onclick="showPage('securityPage', this)" style="margin-top: auto;" title="Admin"><i class="fa-solid fa-lock"></i></div>
+        <div class="nav-item active" onclick="showPage('mapPage', this)"><i class="fa-solid fa-map"></i></div>
+        <div class="nav-item" onclick="showPage('boundaryPage', this)"><i class="fa-solid fa-arrows-to-dot"></i></div>
+        <div id="sosNav" class="nav-item" onclick="acknowledgeSOS()"><i class="fa-solid fa-kit-medical"></i></div>
+        <div class="nav-item" onclick="showPage('securityPage', this)" style="margin-top: auto;"><i class="fa-solid fa-lock"></i></div>
     </nav>
 
     <section id="mapPage" class="page active">
         <div class="top-status">
             <span id="statDot" style="width: 8px; height: 8px; border-radius: 50%; background: var(--accent);"></span>
             <span id="statusLabel">VESSEL SECURE</span>
-            <span id="lastSyncTime" style="opacity: 0.5; margin-left: 10px;">--:--</span>
+            <span id="lastSyncTime" style="opacity: 0.4;">--:--</span>
         </div>
         <div id="map"></div>
         <div class="floating-pos">
-            <label>Live Telemetry</label>
-            <div id="boatCoords" style="font-size: 18px; font-weight: 900; letter-spacing: -1px;">SEARCHING...</div>
+            <label>Live Coordinates</label>
+            <div id="boatCoords" style="font-size: 16px; font-weight: 900; font-family: monospace;">FETCHING...</div>
         </div>
     </section>
 
     <section id="boundaryPage" class="page">
         <div class="panel">
-            <div class="header-title">GEOFENCE<br><span style="color:var(--accent); background:black; padding: 0 10px;">CONTROL</span></div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div class="header-title">BOUNDARY<br><span style="color:var(--accent); background:black; padding: 0 10px;">ENFORCEMENT</span></div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                 <div class="input-group"><label>Center Latitude</label><input type="number" id="cmdLat" step="0.000001" placeholder="23.1316"></div>
                 <div class="input-group"><label>Center Longitude</label><input type="number" id="cmdLon" step="0.000001" placeholder="88.5473"></div>
             </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                <div class="input-group"><label>Outer Radius (m)</label><input type="number" id="cmdRad" placeholder="50"></div>
-                <div class="input-group"><label>Buffer Gap (m)</label><input type="number" id="cmdBuf" placeholder="7"></div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="input-group"><label>Fence Radius (m)</label><input type="number" id="cmdRad" placeholder="50"></div>
+                <div class="input-group"><label>Safety Buffer (m)</label><input type="number" id="cmdBuf" placeholder="7"></div>
             </div>
-            <button id="syncBtn" class="btn btn-black" onclick="updateGeofence()" disabled>AUTHORIZE & SYNC</button>
-            <p style="font-size: 10px; color: #888; margin-top: 20px; text-align: center;">Enter PIN in Security Tab to unlock commands.</p>
+
+            <button id="syncBtn" class="btn btn-black" onclick="updateGeofence()" disabled>
+                <i class="fa-solid fa-unlock-keyhole" id="lockIcon"></i>
+                <span id="btnText">LOCKED: AUTHORIZE IN SECURITY</span>
+            </button>
         </div>
     </section>
 
     <section id="securityPage" class="page">
         <div class="panel">
-            <div class="header-title">SECURITY<br>CORE</div>
+            <div class="header-title">SECURITY<br>TERMINAL</div>
             <div class="input-group">
-                <label>Master Access PIN</label>
+                <label>Admin Master PIN</label>
                 <input type="password" id="adminPin" placeholder="****" oninput="checkAuth()">
             </div>
-            <button class="btn btn-black" onclick="openPinModal()">CHANGE SYSTEM PIN</button>
-            <button class="btn" style="background:#ddd" onclick="clearPath()">PURGE PATH LOGS</button>
-            <button class="btn" style="margin-top:40px; font-size: 10px; color: #aaa;" onclick="forgotPin()">RESET SYSTEM TO DEFAULT</button>
+            <button class="btn btn-black" onclick="openPinModal()">UPDATE SYSTEM PIN</button>
+            <button class="btn" style="background:#eee" onclick="clearPath()">CLEAR MAP PATHS</button>
+            <div style="text-align: center; margin-top: 30px;">
+                <a href="#" onclick="forgotPin()" style="font-size: 11px; color: #bbb; text-decoration: none;">System Reset to Default</a>
+            </div>
         </div>
     </section>
 </div>
 
-<div id="settingsModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:white; z-index:3000; padding: 50px; box-sizing: border-box;">
+<div id="settingsModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.98); z-index:3000; align-items: center; justify-content: center;">
     <div class="panel">
-        <h2>Update Master Key</h2>
-        <input type="password" id="oldPin" placeholder="Verify Old PIN" style="margin-bottom: 10px;">
-        <input type="password" id="newPin" placeholder="New 4-Digit PIN" maxlength="4">
-        <button class="btn btn-black" onclick="saveNewPin()">CONFIRM UPDATE</button>
+        <h2>Reset Master PIN</h2>
+        <input type="password" id="oldPin" placeholder="Enter Current PIN" style="margin-bottom: 10px;">
+        <input type="password" id="newPin" placeholder="Enter New 4-Digit PIN" maxlength="4">
+        <button class="btn btn-black" onclick="saveNewPin()">UPDATE NOW</button>
         <button class="btn" onclick="closeSettings()">CANCEL</button>
     </div>
 </div>
@@ -149,7 +153,6 @@
     
     if (!localStorage.getItem('navPin')) localStorage.setItem('navPin', '1234');
 
-    // NAV LOGIC
     function showPage(pageId, elm) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
@@ -158,7 +161,6 @@
         if(pageId === 'mapPage') setTimeout(() => map.invalidateSize(), 200);
     }
 
-    // MAP SETUP
     var map = L.map('map', {zoomControl: false}).setView([23.13161, 88.54735], 18);
     L.tileLayer('https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}', { maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3'] }).addTo(map);
 
@@ -167,10 +169,25 @@
     var visualFence = L.circle([23.13161, 88.54735], { radius: 50, color: '#ff3e3e', weight: 1, fillOpacity: 0.05 }).addTo(map);
     var safetyRing = L.circle([23.13161, 88.54735], { radius: 43, color: '#000', weight: 1, dashArray: '5, 5', fillOpacity: 0 }).addTo(map);
 
-    // CORE FUNCTIONS
     function checkAuth() {
         const isAuth = document.getElementById('adminPin').value === localStorage.getItem('navPin');
-        document.getElementById('syncBtn').disabled = !isAuth;
+        const syncBtn = document.getElementById('syncBtn');
+        const lockIcon = document.getElementById('lockIcon');
+        const btnText = document.getElementById('btnText');
+
+        if(isAuth) {
+            syncBtn.disabled = false;
+            lockIcon.className = "fa-solid fa-paper-plane";
+            btnText.innerText = "AUTHORIZE & SYNC NOW";
+            syncBtn.style.background = "#d4ff00";
+            syncBtn.style.color = "#000";
+        } else {
+            syncBtn.disabled = true;
+            lockIcon.className = "fa-solid fa-lock";
+            btnText.innerText = "LOCKED: AUTHORIZE IN SECURITY";
+            syncBtn.style.background = "";
+            syncBtn.style.color = "";
+        }
     }
 
     async function updateData() {
@@ -188,10 +205,10 @@
                 
                 let label = document.getElementById('statusLabel'), dot = document.getElementById('statDot'), sosNav = document.getElementById('sosNav');
                 if (statusMsg.includes("SOS")) {
-                    label.innerText = "EMERGENCY: DISTRESS"; dot.style.background = "red";
+                    label.innerText = "DISTRESS SIGNAL"; dot.style.background = "red";
                     sosNav.classList.add('danger-active');
                 } else if (statusMsg.includes("ALERT")) {
-                    label.innerText = "WARNING: BREACH"; dot.style.background = "orange";
+                    label.innerText = "BOUNDARY BREACH"; dot.style.background = "orange";
                     sosNav.classList.remove('danger-active');
                 } else {
                     label.innerText = "VESSEL SECURE"; dot.style.background = "#d4ff00";
@@ -209,27 +226,27 @@
             visualFence.setLatLng([lat, lon]); visualFence.setRadius(parseFloat(rad));
             safetyRing.setLatLng([lat, lon]); safetyRing.setRadius(parseFloat(rad) - parseFloat(buf));
             map.flyTo([lat, lon], 18);
-            alert("BOUNDARY SYNCHRONIZED");
+            alert("COMMAND DISPATCHED SUCCESSFULLY");
         }
     }
 
     async function acknowledgeSOS() {
         const isAuth = document.getElementById('adminPin').value === localStorage.getItem('navPin');
-        if(!isAuth) return alert("Enter Admin PIN first!");
+        if(!isAuth) return alert("Security Error: Input PIN in Terminal tab first.");
         const params = new URLSearchParams(); params.append('api_key', talkBackKey); params.append('command_string', "ACK_SOS");
         await fetch(`https://api.thingspeak.com/talkbacks/${talkBackID}/commands.json`, { method: 'POST', body: params });
-        alert("RESCUE COORDINATED - BOAT NOTIFIED");
+        alert("RESCUE BROADCAST SENT");
     }
 
-    function openPinModal() { document.getElementById('settingsModal').style.display = 'block'; }
+    function openPinModal() { document.getElementById('settingsModal').style.display = 'flex'; }
     function closeSettings() { document.getElementById('settingsModal').style.display = 'none'; }
     function saveNewPin() {
         if(document.getElementById('oldPin').value === localStorage.getItem('navPin')) {
             localStorage.setItem('navPin', document.getElementById('newPin').value); alert("PIN UPDATED"); location.reload();
         }
     }
-    function forgotPin() { if(prompt("Reset: Project Name?").toLowerCase() === "navrakhshak") { localStorage.setItem('navPin', '1234'); location.reload(); }}
-    function clearPath() { boatPath.setLatLngs([]); }
+    function forgotPin() { if(prompt("Project Name?").toLowerCase() === "navrakhshak") { localStorage.setItem('navPin', '1234'); location.reload(); }}
+    function clearPath() { boatPath.setLatLngs([]); alert("HISTORY PURGED"); }
 
     setInterval(updateData, 15000); updateData();
 </script>
