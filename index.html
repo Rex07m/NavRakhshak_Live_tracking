@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NAVRAKHSHAK | Maritime Intelligence</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <title>NAVRAKHSHAK | 3D Command Intelligence</title>
+    <script src="https://cesium.com/downloads/cesiumjs/releases/1.108/Build/Cesium/Cesium.js"></script>
+    <link href="https://cesium.com/downloads/cesiumjs/releases/1.108/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&family=Syncopate:wght@400;700&display=swap');
 
         :root {
-            /* Light Theme (Default) */
             --bg-deep: #f0f2f5;
             --panel-bg: rgba(255, 255, 255, 0.9);
             --text-color: #1a1c1e;
@@ -24,16 +24,14 @@
                 --bg-deep: #0a0c10;
                 --panel-bg: rgba(13, 17, 23, 0.9);
                 --text-color: #e6edf3;
-                --accent: #d4ff00; /* Neon Lime for Dark Mode */
+                --accent: #d4ff00;
                 --border: rgba(255,255,255,0.1);
             }
         }
 
         body, html { margin: 0; padding: 0; height: 100%; font-family: 'Space Grotesk', sans-serif; background: var(--bg-deep); color: var(--text-color); overflow: hidden; }
-
         .app-shell { display: flex; height: 100vh; width: 100vw; }
 
-        /* HUD SIDEBAR */
         aside {
             width: 280px; background: var(--panel-bg); backdrop-filter: blur(20px);
             border-right: 1px solid var(--border); display: flex; flex-direction: column;
@@ -41,7 +39,6 @@
         }
 
         .brand-logo { font-family: 'Syncopate', sans-serif; font-weight: 700; font-size: 18px; letter-spacing: 3px; color: var(--accent); }
-        
         .nav-group { display: flex; flex-direction: column; gap: 10px; }
         .nav-btn {
             background: none; border: none; color: var(--text-color); font-size: 13px; font-weight: 600;
@@ -50,9 +47,8 @@
         }
         .nav-btn:hover, .nav-btn.active { background: var(--accent); color: #000; }
 
-        /* VIEWPORT */
-        .viewport { flex-grow: 1; position: relative; height: 100%; background: #ccc; }
-        #map { height: 100%; width: 100%; z-index: 1; }
+        .viewport { flex-grow: 1; position: relative; height: 100%; }
+        #cesiumContainer { width: 100%; height: 100%; }
 
         .page { 
             position: absolute; inset: 0; display: none; padding: 40px; 
@@ -78,9 +74,8 @@
             padding: 18px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px;
             border-radius: 8px; cursor: pointer; transition: 0.3s;
         }
-        .action-btn:disabled { background: #555; color: #888; cursor: not-allowed; }
+        .action-btn:disabled { background: #555; opacity: 0.5; }
 
-        /* HUD OVERLAYS */
         .hud-tag {
             position: absolute; top: 30px; right: 30px; background: var(--panel-bg);
             padding: 10px 20px; border-radius: 50px; font-size: 10px; font-weight: 800; z-index: 1000; border: 1px solid var(--border);
@@ -100,96 +95,88 @@
     <aside>
         <div class="brand-zone">
             <div class="brand-logo">NAVRAKHSHAK</div>
-            <div style="font-size: 9px; opacity: 0.5; letter-spacing: 1px;">ADAPTIVE MARITIME INTEL</div>
+            <div style="font-size: 9px; opacity: 0.5;">3D TACTICAL ENGINE</div>
         </div>
 
         <nav class="nav-group">
-            <button class="nav-btn active" onclick="showPage('mapPage', this)"><i class="fa-solid fa-crosshairs"></i> Surveillance</button>
+            <button class="nav-btn active" onclick="showPage('mapPage', this)"><i class="fa-solid fa-globe"></i> Surveillance</button>
             <button class="nav-btn" onclick="showPage('adminPage', this)"><i class="fa-solid fa-terminal"></i> Command Center</button>
             <button class="nav-btn" id="sosNavBtn" onclick="acknowledgeSOS()"><i class="fa-solid fa-satellite-dish"></i> Rescue Ack</button>
         </nav>
 
-        <div style="margin-top: auto; font-size: 9px; opacity: 0.4; line-height: 1.8;">
-            CORE: JIS-ECE-07<br>MODE: ADAPTIVE UI<br>STATUS: ENCRYPTED
+        <div style="margin-top: auto; font-size: 9px; opacity: 0.4;">
+            CORE: JIS-ECE-07<br>VISUALS: 3D PHOTOREALISTIC
         </div>
     </aside>
 
     <div class="viewport">
-        <div id="map"></div>
-        <div class="hud-tag" id="statusBadge">LINK: STANDBY</div>
+        <div id="cesiumContainer"></div>
+        <div class="hud-tag" id="statusBadge">3D ENGINE: ONLINE</div>
 
         <div class="pos-overlay">
-            <div style="font-size: 9px; opacity: 0.6; margin-bottom: 4px;">UNIT_01 POSITION</div>
-            <div id="boatCoords" style="font-size: 16px; font-weight: 800; font-family: monospace;">FETCHING...</div>
-            <div id="syncTime" style="font-size: 9px; opacity: 0.6; margin-top: 4px;">--:--:--</div>
+            <div style="font-size: 9px; opacity: 0.6;">3D GEOLOCATION</div>
+            <div id="boatCoords" style="font-size: 16px; font-weight: 800; font-family: monospace;">---.--- , ---.---</div>
         </div>
 
         <section id="adminPage" class="page">
             <div class="tech-panel">
                 <div class="title-panel">COMMAND</div>
-                
-                <label style="font-size: 10px; opacity: 0.6;">NEW BOUNDARY COORDINATES</label>
-                <div style="display:flex; gap:10px; margin-top:5px;">
-                    <input type="number" id="cmdLat" step="0.000001" placeholder="Latitude">
-                    <input type="number" id="cmdLon" step="0.000001" placeholder="Longitude">
+                <div style="display:flex; gap:10px;">
+                    <input type="number" id="cmdLat" step="0.000001" placeholder="Lat">
+                    <input type="number" id="cmdLon" step="0.000001" placeholder="Lon">
                 </div>
-                
                 <div style="display:flex; gap:10px;">
                     <input type="number" id="cmdRad" placeholder="Radius (m)">
                     <input type="number" id="cmdBuf" placeholder="Buffer (m)">
                 </div>
-
-                <button id="syncBtn" class="action-btn" onclick="updateGeofence()" disabled>DISPATCH ZONE</button>
-
+                <button id="syncBtn" class="action-btn" onclick="updateGeofence()" disabled>DISPATCH BOUNDARY</button>
                 <div style="margin-top: 25px; border-top: 1px solid var(--border); padding-top: 20px;">
-                    <label style="font-size: 10px; opacity: 0.6;">MASTER AUTHORIZATION</label>
                     <input type="password" id="adminPin" placeholder="Enter PIN" maxlength="4" oninput="checkAuth()">
-                    <div style="display:flex; justify-content: space-between;">
-                        <button onclick="clearPath()" style="background:none; border:none; color:var(--accent); cursor:pointer; font-size:10px; font-weight:700;">PURGE PATHS</button>
-                        <button onclick="openSettingsModal()" style="background:none; border:none; color:var(--text-color); opacity:0.5; cursor:pointer; font-size:10px;">RESET PIN</button>
-                    </div>
                 </div>
             </div>
         </section>
     </div>
 </div>
 
-<div id="settingsModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:9000; align-items:center; justify-content:center; backdrop-filter:blur(10px);">
-    <div class="tech-panel">
-        <h3 style="font-family:'Syncopate';">RE-KEY SYSTEM</h3>
-        <input type="password" id="oldPin" placeholder="Verify Current Key">
-        <input type="password" id="newPin" placeholder="New 4-Digit Key" maxlength="4">
-        <button class="action-btn" onclick="saveNewPin()">APPLY KEY</button>
-        <button onclick="closeSettings()" style="background:none; border:none; color:white; width:100%; margin-top:10px; cursor:pointer;">CANCEL</button>
-    </div>
-</div>
-
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
     const chID = "3300600", rKey = "M8RQ5ECSRWHF5ZRE", tbID = "56620", tbKey = "6H22BCX9X5LZ8II6";
     if (!localStorage.getItem('navPin')) localStorage.setItem('navPin', '1234');
+
+    // 1. INITIALIZE 3D GLOBE
+    const viewer = new Cesium.Viewer('cesiumContainer', {
+        terrainProvider: Cesium.createWorldTerrain(),
+        animation: false, timeline: false, baseLayerPicker: false, geocoder: false,
+        navigationHelpButton: false, sceneModePicker: false, homeButton: false
+    });
+
+    viewer.scene.globe.enableLighting = true;
+
+    // The Boat Entity
+    var boatPoint = viewer.entities.add({
+        position: Cesium.Cartesian3.fromDegrees(88.54735, 23.13161),
+        point: { pixelSize: 12, color: Cesium.Color.LIME, outlineColor: Cesium.Color.BLACK, outlineWidth: 2 },
+        label: { text: "VESSEL_NAV", font: "10px monospace", verticalOrigin: Cesium.VerticalOrigin.BOTTOM, pixelOffset: new Cesium.Cartesian2(0, -10) }
+    });
+
+    // --- 3D GEOFENCE CYLINDER ---
+    var fenceEntity = viewer.entities.add({
+        position: Cesium.Cartesian3.fromDegrees(88.54735, 23.13161),
+        cylinder: {
+            length: 100.0, // Vertical height
+            topRadius: 50.0,
+            bottomRadius: 50.0,
+            material: Cesium.Color.CYAN.withAlpha(0.1),
+            outline: true,
+            outlineColor: Cesium.Color.CYAN
+        }
+    });
 
     function showPage(pID, btn) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
         if(pID !== 'mapPage') document.getElementById(pID).classList.add('active');
         btn.classList.add('active');
-        // Force the map to fill the container after switching back
-        if(pID === 'mapPage') {
-            setTimeout(() => { map.invalidateSize(); }, 200);
-        }
     }
-
-    // TOPOGRAPHICAL MAP INITIALIZATION
-    var map = L.map('map', {zoomControl: false}).setView([23.13161, 88.54735], 16);
-    L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
-        maxZoom: 17,
-        attribution: 'Map data: &copy; OpenStreetMap contributors, SRTM | Map style: &copy; OpenTopoMap'
-    }).addTo(map);
-
-    var boatPath = L.polyline([], {color: '#ff9900', weight: 3, opacity: 0.7}).addTo(map);
-    var boatIcon = L.circleMarker([0,0], { radius: 10, color: '#000', fillColor: '#d4ff00', fillOpacity: 1, weight: 3 }).addTo(map);
-    var visualFence = L.circle([23.13161, 88.54735], { radius: 50, color: 'red', weight: 2, fillOpacity: 0.1 }).addTo(map);
 
     function checkAuth() {
         const isAuth = document.getElementById('adminPin').value === localStorage.getItem('navPin');
@@ -204,51 +191,57 @@
             if (feed) {
                 const lat = parseFloat(feed.field1), lon = parseFloat(feed.field2), statusMsg = String(feed.field3 || "").toUpperCase();
                 if (!isNaN(lat) && !isNaN(lon) && lat !== 0) {
-                    boatIcon.setLatLng([lat, lon]); boatPath.addLatLng([lat, lon]);
+                    const newPos = Cesium.Cartesian3.fromDegrees(lon, lat);
+                    boatPoint.position = newPos;
                     document.getElementById('boatCoords').innerText = `${lat.toFixed(6)} , ${lon.toFixed(6)}`;
                 }
-                document.getElementById('syncTime').innerText = new Date(feed.created_at).toLocaleTimeString();
                 
-                let badge = document.getElementById('statusBadge'), sosBtn = document.getElementById('sosNavBtn');
-                if (statusMsg.includes("SOS")) {
-                    badge.innerText = "ALARM: DISTRESS SIGNAL"; badge.classList.add('danger-pulse');
-                    sosBtn.classList.add('danger-pulse');
+                let badge = document.getElementById('statusBadge');
+                if (statusMsg.includes("SOS") || statusMsg.includes("ALERT")) {
+                    badge.innerText = "ALARM: BREACH DETECTED";
+                    badge.classList.add('danger-pulse');
+                    // Transform fence to Red Warning Cylinder
+                    fenceEntity.cylinder.material = Cesium.Color.RED.withAlpha(0.4);
+                    fenceEntity.cylinder.outlineColor = Cesium.Color.RED;
+                    fenceEntity.cylinder.length = 500.0; // Make it a high warning tower
                 } else {
-                    badge.innerText = "LINK: SECURE / LIVE"; badge.classList.remove('danger-pulse');
-                    sosBtn.classList.remove('danger-pulse');
+                    badge.innerText = "SYSTEM SECURE";
+                    badge.classList.remove('danger-pulse');
+                    fenceEntity.cylinder.material = Cesium.Color.CYAN.withAlpha(0.1);
+                    fenceEntity.cylinder.outlineColor = Cesium.Color.CYAN;
+                    fenceEntity.cylinder.length = 100.0;
                 }
             }
         } catch (e) {}
     }
 
     async function updateGeofence() {
-        const lat = document.getElementById('cmdLat').value, lon = document.getElementById('cmdLon').value, rad = document.getElementById('cmdRad').value, buf = document.getElementById('cmdBuf').value;
-        const params = new URLSearchParams(); params.append('api_key', tbKey); params.append('command_string', `SET:${lat},${lon},${rad},${buf}`);
-        const res = await fetch(`https://api.thingspeak.com/talkbacks/${tbID}/commands.json`, { method: 'POST', body: params });
-        if(res.ok) {
-            visualFence.setLatLng([lat, lon]); visualFence.setRadius(parseFloat(rad));
-            alert("BOUNDARY DISPATCHED.");
-        }
+        const lat = parseFloat(document.getElementById('cmdLat').value);
+        const lon = parseFloat(document.getElementById('cmdLon').value);
+        const rad = parseFloat(document.getElementById('cmdRad').value);
+        const command = `SET:${lat},${lon},${rad},7`;
+        
+        await fetch(`https://api.thingspeak.com/talkbacks/${tbID}/commands.json?api_key=${tbKey}&command_string=${command}`, { method: 'POST' });
+        
+        // Sync 3D Visuals immediately
+        fenceEntity.position = Cesium.Cartesian3.fromDegrees(lon, lat);
+        fenceEntity.cylinder.topRadius = rad;
+        fenceEntity.cylinder.bottomRadius = rad;
+        
+        viewer.camera.flyTo({
+            destination: Cesium.Cartesian3.fromDegrees(lon, lat, 1000.0),
+            orientation: { heading: 0, pitch: Cesium.Math.toRadians(-90), roll: 0 }
+        });
+        alert("3D BOUNDARY DISPATCHED.");
     }
 
     async function acknowledgeSOS() {
-        const isAuth = document.getElementById('adminPin').value === localStorage.getItem('navPin');
-        if(!isAuth) return alert("AUTH REQUIRED: Enter PIN in Command Center.");
-        const params = new URLSearchParams(); params.append('api_key', tbKey); params.append('command_string', "ACK_SOS");
-        await fetch(`https://api.thingspeak.com/talkbacks/${tbID}/commands.json`, { method: 'POST', body: params });
+        if(document.getElementById('adminPin').value !== localStorage.getItem('navPin')) return alert("Enter PIN first.");
+        await fetch(`https://api.thingspeak.com/talkbacks/${tbID}/commands.json?api_key=${tbKey}&command_string=ACK_SOS`, { method: 'POST' });
         alert("RESCUE ACK BROADCASTED.");
     }
 
-    function openSettingsModal() { document.getElementById('settingsModal').style.display = 'flex'; }
-    function closeSettings() { document.getElementById('settingsModal').style.display = 'none'; }
-    function saveNewPin() {
-        if(document.getElementById('oldPin').value === localStorage.getItem('navPin')) {
-            localStorage.setItem('navPin', document.getElementById('newPin').value); alert("KEY UPDATED."); closeSettings();
-        }
-    }
-    function clearPath() { boatPath.setLatLngs([]); alert("MAP PURGED."); }
-
-    setInterval(updateData, 15000); updateData();
+    setInterval(updateData, 15000);
 </script>
 </body>
 </html>
