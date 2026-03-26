@@ -30,19 +30,18 @@
 
         body, html { margin: 0; padding: 0; height: 100%; width: 100%; font-family: 'Space Grotesk', sans-serif; background: var(--bg-deep); color: var(--text-color); overflow: hidden; }
 
-        .app-shell { display: flex; flex-direction: column; height: 100vh; width: 100vw; position: relative; }
+        .app-shell { display: flex; height: 100vh; width: 100vw; position: relative; flex-direction: column; }
         @media (min-width: 992px) { .app-shell { flex-direction: row; } }
 
-        /* SIDEBAR / NAV */
         aside {
             width: 100%; background: var(--panel-bg); backdrop-filter: blur(20px);
             border-top: 1px solid var(--border); display: flex; flex-direction: column;
-            padding: 20px; z-index: 2000; flex-shrink: 0; box-sizing: border-box;
+            padding: 15px; z-index: 2000; flex-shrink: 0; box-sizing: border-box;
         }
         @media (min-width: 992px) { aside { width: 300px; height: 100vh; border-right: 1px solid var(--border); border-top: none; padding: 40px 30px; } }
 
         .brand-logo { font-family: 'Syncopate', sans-serif; font-weight: 700; font-size: 18px; letter-spacing: 2px; color: var(--accent); }
-        .nav-group { display: flex; flex-direction: row; gap: 10px; margin-top: 15px; }
+        .nav-group { display: flex; flex-direction: row; gap: 10px; margin-top: 10px; }
         @media (min-width: 992px) { .nav-group { flex-direction: column; margin-top: 40px; } }
 
         .nav-btn {
@@ -53,9 +52,8 @@
         @media (min-width: 992px) { .nav-btn { flex: none; flex-direction: row; text-align: left; padding: 12px 15px; font-size: 13px; justify-content: flex-start; } }
         .nav-btn:hover, .nav-btn.active { background: var(--accent); color: #000; }
 
-        /* VIEWPORT */
-        .viewport { flex-grow: 1; position: relative; width: 100%; height: 100%; overflow: hidden; }
-        #map { height: 100%; width: 100%; z-index: 1; }
+        .viewport { flex-grow: 1; position: relative; width: 100%; height: 100%; overflow: hidden; background: #000; }
+        #map { height: 100%; width: 100%; z-index: 1; position: absolute; top:0; left:0; }
 
         .page { position: absolute; inset: 0; display: none; padding: 20px; z-index: 100; pointer-events: none; justify-content: center; align-items: center; }
         .page.active { display: flex; }
@@ -63,16 +61,15 @@
         .tech-panel {
             background: var(--panel-bg); border: 1px solid var(--border);
             padding: 30px; border-radius: 20px; width: 100%; max-width: 400px;
-            backdrop-filter: blur(25px); pointer-events: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            backdrop-filter: blur(25px); pointer-events: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.3);
         }
 
         input { width: 100%; background: rgba(128,128,128,0.1); border: 1px solid var(--border); padding: 12px; color: var(--text-color); border-radius: 8px; font-family: monospace; margin-bottom: 12px; box-sizing: border-box; }
         .action-btn { width: 100%; background: var(--accent); color: #000; border: none; padding: 18px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; border-radius: 8px; cursor: pointer; transition: 0.3s; }
         .action-btn:disabled { background: #555; opacity: 0.5; cursor: not-allowed; }
 
-        /* HUD ELEMENTS */
         .hud-tag { position: absolute; top: 20px; right: 20px; background: var(--panel-bg); padding: 10px 20px; border-radius: 50px; font-size: 10px; font-weight: 800; z-index: 1000; border: 1px solid var(--border); }
-        .pos-overlay { position: absolute; bottom: 20px; left: 20px; background: var(--panel-bg); padding: 15px 20px; border-radius: 12px; z-index: 1000; border-left: 5px solid var(--accent); min-width: 180px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .pos-overlay { position: absolute; bottom: 20px; left: 20px; background: var(--panel-bg); padding: 15px 20px; border-radius: 12px; z-index: 1000; border-left: 5px solid var(--accent); min-width: 180px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); pointer-events: none; }
 
         .danger-pulse { background: var(--danger) !important; color: white !important; animation: flash 1s infinite; }
         @keyframes flash { 50% { opacity: 0.5; } }
@@ -96,17 +93,17 @@
 
         <div class="pos-overlay">
             <div style="font-size: 10px; opacity: 0.6; margin-bottom: 5px; font-weight: 700;">TELEMETRY [LAT, LON]</div>
-            <div id="boatCoords" style="font-size: 18px; font-weight: 800; font-family: monospace;">WAITING...</div>
+            <div id="boatCoords" style="font-size: 18px; font-weight: 800; font-family: monospace;">CONNECTING...</div>
             <div id="syncTime" style="font-size: 10px; opacity: 0.6; margin-top: 5px;">SYNC: --:--:--</div>
         </div>
 
         <section id="adminPage" class="page">
             <div class="tech-panel">
                 <div style="font-family:'Syncopate'; font-weight:700; margin-bottom:20px; font-size:22px;">COMMAND</div>
-                <label style="font-size:10px; opacity:0.6;">ZONE COORDINATES</label>
+                <label style="font-size:10px; opacity:0.6;">BOUNDARY SETTINGS</label>
                 <div style="display:flex; gap:10px;">
-                    <input type="number" id="cmdLat" step="0.000001" placeholder="Lat">
-                    <input type="number" id="cmdLon" step="0.000001" placeholder="Lon">
+                    <input type="number" id="cmdLat" step="0.000001" placeholder="Latitude">
+                    <input type="number" id="cmdLon" step="0.000001" placeholder="Longitude">
                 </div>
                 <div style="display:flex; gap:10px;">
                     <input type="number" id="cmdRad" placeholder="Radius (m)">
@@ -114,9 +111,9 @@
                 </div>
                 <button id="syncBtn" class="action-btn" onclick="updateGeofence()" disabled>DISPATCH BOUNDARY</button>
                 <div style="margin-top: 25px; border-top: 1px solid var(--border); padding-top: 20px;">
-                    <label style="font-size:10px; opacity:0.6;">AUTHORIZATION</label>
+                    <label style="font-size:10px; opacity:0.6;">AUTHENTICATION</label>
                     <input type="password" id="adminPin" placeholder="Master PIN" maxlength="4" oninput="checkAuth()">
-                    <button onclick="clearPath()" style="background:none; border:none; color:var(--accent); cursor:pointer; font-size:11px; font-weight:700;">PURGE PATHS</button>
+                    <button onclick="clearPath()" style="background:none; border:none; color:var(--accent); cursor:pointer; font-size:11px; font-weight:700;">PURGE HISTORY</button>
                 </div>
             </div>
         </section>
@@ -131,20 +128,33 @@
     function showPage(pID, btn) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-        if(pID !== 'mapPage') document.getElementById(pID).classList.add('active');
+        if(pID !== 'mapPage') {
+            document.getElementById(pID).classList.add('active');
+        }
         btn.classList.add('active');
-        if(pID === 'mapPage') setTimeout(() => map.invalidateSize(), 200);
+        // Critical: Update Leaflet size when map becomes visible
+        if(pID === 'mapPage') {
+            setTimeout(() => {
+                map.invalidateSize();
+                if(lastPos) map.panTo(lastPos);
+            }, 300);
+        }
     }
 
-    // 2D GOOGLE HYBRID MAP
-    var map = L.map('map', {zoomControl: false}).setView([23.13161, 88.54735], 17);
-    L.tileLayer('https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+    // MAP INITIALIZATION
+    var map = L.map('map', {zoomControl: false, attributionControl: false}).setView([23.13161, 88.54735], 18);
+    var lastPos = null;
+
+    L.tileLayer('https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}', {
         maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3']
     }).addTo(map);
 
-    var boatPath = L.polyline([], {color: '#ff9900', weight: 3}).addTo(map);
-    var boatIcon = L.circleMarker([0,0], { radius: 10, color: '#fff', fillColor: '#007bff', fillOpacity: 1, weight: 3 }).addTo(map);
-    var visualFence = L.circle([23.13161, 88.54735], { radius: 50, color: 'red', weight: 2, fillOpacity: 0.1 }).addTo(map);
+    var boatPath = L.polyline([], {color: '#d4ff00', weight: 4, opacity: 0.8}).addTo(map);
+    var boatIcon = L.circleMarker([23.13161, 88.54735], { radius: 10, color: '#fff', fillColor: '#007bff', fillOpacity: 1, weight: 3 }).addTo(map);
+    var visualFence = L.circle([23.13161, 88.54735], { radius: 50, color: 'red', weight: 2, fillOpacity: 0.15 }).addTo(map);
+
+    // Keep Marker at top
+    boatIcon.bringToFront();
 
     function checkAuth() {
         const isAuth = document.getElementById('adminPin').value === localStorage.getItem('navPin');
@@ -153,49 +163,75 @@
 
     async function updateData() {
         try {
-            const res = await fetch(`https://api.thingspeak.com/channels/${chID}/feeds.json?api_key=${readKey}&results=1`);
+            const res = await fetch(`https://api.thingspeak.com/channels/${chID}/feeds.json?api_key=${rKey}&results=1`);
             const data = await res.json();
             const feed = data.feeds[0];
             if (feed) {
-                const lat = parseFloat(feed.field1), lon = parseFloat(feed.field2), statusMsg = String(feed.field3 || "").toUpperCase();
+                const lat = parseFloat(feed.field1), lon = parseFloat(feed.field2);
+                const statusMsg = String(feed.field3 || "").toUpperCase();
+                
                 if (!isNaN(lat) && !isNaN(lon) && lat !== 0) {
-                    const pos = [lat, lon];
-                    boatIcon.setLatLng(pos);
-                    boatPath.addLatLng(pos);
+                    lastPos = [lat, lon];
+                    boatIcon.setLatLng(lastPos);
+                    boatPath.addLatLng(lastPos);
                     document.getElementById('boatCoords').innerText = `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+                    boatIcon.bringToFront();
                 }
+                
                 document.getElementById('syncTime').innerText = `SYNC: ${new Date(feed.created_at).toLocaleTimeString()}`;
                 
                 let badge = document.getElementById('statusBadge'), sosBtn = document.getElementById('sosNavBtn');
+                
+                // FIXED SOS DETECTION LOGIC
                 if (statusMsg.includes("SOS") || statusMsg.includes("ALERT")) {
-                    badge.innerText = "ALARM: BREACH DETECTED"; badge.classList.add('danger-pulse');
+                    badge.innerText = "ALARM: DISTRESS SIGNAL"; 
+                    badge.classList.add('danger-pulse');
                     sosBtn.classList.add('danger-pulse');
+                    boatIcon.setStyle({fillColor: '#ff0000'}); // Turn boat red
                 } else {
-                    badge.innerText = "LINK: SECURE / LIVE"; badge.classList.remove('danger-pulse');
+                    badge.innerText = "LINK: SECURE / LIVE"; 
+                    badge.classList.remove('danger-pulse');
                     sosBtn.classList.remove('danger-pulse');
+                    boatIcon.setStyle({fillColor: '#007bff'}); // Turn boat back to blue
                 }
             }
-        } catch (e) {}
+        } catch (e) { console.error("Telemetry Error:", e); }
     }
 
     async function updateGeofence() {
-        const lat = document.getElementById('cmdLat').value, lon = document.getElementById('cmdLon').value, rad = document.getElementById('cmdRad').value, buf = document.getElementById('cmdBuf').value;
+        const lat = document.getElementById('cmdLat').value, lon = document.getElementById('cmdLon').value;
+        const rad = document.getElementById('cmdRad').value, buf = document.getElementById('cmdBuf').value;
+        if(!lat || !lon) return alert("Enter valid coordinates");
+        
         const command = `SET:${lat},${lon},${rad},${buf}`;
-        await fetch(`https://api.thingspeak.com/talkbacks/${tbID}/commands.json?api_key=${tbKey}&command_string=${command}`, { method: 'POST' });
-        visualFence.setLatLng([lat, lon]); visualFence.setRadius(parseFloat(rad));
-        map.panTo([lat, lon]);
-        alert("BOUNDARY DISPATCHED.");
+        const params = new URLSearchParams();
+        params.append('api_key', tbKey);
+        params.append('command_string', command);
+        
+        const res = await fetch(`https://api.thingspeak.com/talkbacks/${tbID}/commands.json`, { method: 'POST', body: params });
+        if(res.ok) {
+            visualFence.setLatLng([lat, lon]);
+            visualFence.setRadius(parseFloat(rad));
+            map.panTo([lat, lon]);
+            alert("COMMAND DISPATCHED: Boundary Updated.");
+        }
     }
 
     async function acknowledgeSOS() {
-        if(document.getElementById('adminPin').value !== localStorage.getItem('navPin')) return alert("Enter PIN in Command tab.");
-        await fetch(`https://api.thingspeak.com/talkbacks/${tbID}/commands.json?api_key=${tbKey}&command_string=ACK_SOS`, { method: 'POST' });
-        alert("BROADCAST SENT.");
+        if(document.getElementById('adminPin').value !== localStorage.getItem('navPin')) return alert("Enter PIN in Command Center tab first.");
+        
+        const params = new URLSearchParams();
+        params.append('api_key', tbKey);
+        params.append('command_string', "ACK_SOS");
+        
+        const res = await fetch(`https://api.thingspeak.com/talkbacks/${tbID}/commands.json`, { method: 'POST', body: params });
+        if(res.ok) alert("RESCUE ACK BROADCASTED.");
     }
 
     function clearPath() { boatPath.setLatLngs([]); alert("MAP PURGED."); }
 
-    setInterval(updateData, 15000);
+    // Start fetching
+    setInterval(updateData, 10000); // Check every 10 seconds
     updateData();
 </script>
 </body>
