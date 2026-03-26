@@ -29,32 +29,38 @@
             }
         }
 
-        body, html { margin: 0; padding: 0; height: 100%; width: 100%; font-family: 'Space Grotesk', sans-serif; background: var(--bg-deep); color: var(--text-color); overflow: hidden; }
+        body, html { margin: 0; padding: 0; height: 100%; width: 100%; font-family: 'Space Grotesk', sans-serif; background: #000; color: var(--text-color); overflow: hidden; }
 
-        .app-shell { display: flex; flex-direction: column; height: 100vh; width: 100vw; }
+        .app-shell { display: flex; flex-direction: column; height: 100vh; width: 100vw; position: relative; }
         @media (min-width: 992px) { .app-shell { flex-direction: row; } }
 
+        /* SIDEBAR */
         aside {
-            width: 100%; background: var(--panel-bg); backdrop-filter: blur(20px);
-            border-top: 1px solid var(--border); display: flex; flex-direction: column;
-            padding: 20px; z-index: 2000; flex-shrink: 0; box-sizing: border-box;
+            width: 300px; height: 100vh; background: var(--panel-bg); backdrop-filter: blur(20px);
+            border-right: 1px solid var(--border); display: flex; flex-direction: column;
+            padding: 40px 30px; z-index: 2000; flex-shrink: 0; box-sizing: border-box;
+            transition: transform 0.3s ease;
         }
-        @media (min-width: 992px) { aside { width: 300px; height: 100vh; border-right: 1px solid var(--border); border-top: none; padding: 40px 30px; } }
+
+        @media (max-width: 991px) {
+            aside { width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--border); padding: 20px; position: absolute; bottom: 0; }
+        }
 
         .brand-logo { font-family: 'Syncopate', sans-serif; font-weight: 700; font-size: 16px; letter-spacing: 2px; color: var(--accent); }
-        .nav-group { display: flex; flex-direction: row; gap: 10px; margin-top: 15px; }
-        @media (min-width: 992px) { .nav-group { flex-direction: column; margin-top: 40px; } }
+        .nav-group { display: flex; flex-direction: column; gap: 10px; margin-top: 30px; }
+        @media (max-width: 991px) { .nav-group { flex-direction: row; margin-top: 10px; } }
 
         .nav-btn {
-            flex: 1; background: rgba(128,128,128,0.1); border: none; color: var(--text-color); font-size: 11px; font-weight: 600;
-            text-transform: uppercase; letter-spacing: 1px; text-align: center; cursor: pointer;
-            padding: 12px 5px; border-radius: 8px; transition: 0.3s; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
+            background: rgba(128,128,128,0.1); border: none; color: var(--text-color); font-size: 13px; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 1px; text-align: left; cursor: pointer;
+            padding: 12px 15px; border-radius: 8px; transition: 0.3s; display: flex; align-items: center; gap: 15px;
         }
-        @media (min-width: 992px) { .nav-btn { flex: none; flex-direction: row; text-align: left; padding: 12px 15px; font-size: 13px; justify-content: flex-start; } }
+        @media (max-width: 991px) { .nav-btn { flex: 1; font-size: 10px; padding: 10px 5px; justify-content: center; flex-direction: column; } }
         .nav-btn:hover, .nav-btn.active { background: var(--accent); color: #000; }
 
-        .viewport { flex-grow: 1; position: relative; width: 100%; height: 100%; overflow: hidden; }
-        #cesiumContainer { width: 100%; height: 100%; background: #000; }
+        /* MAP VIEWPORT */
+        .viewport { flex-grow: 1; position: relative; width: 100%; height: 100%; }
+        #cesiumContainer { width: 100%; height: 100%; position: absolute; top:0; left:0; right:0; bottom:0; }
 
         .page { position: absolute; inset: 0; display: none; padding: 20px; z-index: 100; pointer-events: none; justify-content: center; align-items: center; }
         .page.active { display: flex; }
@@ -62,7 +68,7 @@
         .tech-panel {
             background: var(--panel-bg); border: 1px solid var(--border);
             padding: 25px; border-radius: 15px; width: 100%; max-width: 400px;
-            backdrop-filter: blur(25px); pointer-events: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            backdrop-filter: blur(25px); pointer-events: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.5);
         }
 
         input {
@@ -76,6 +82,7 @@
             border-radius: 6px; cursor: pointer; transition: 0.3s;
         }
 
+        /* OVERLAYS */
         .hud-tag {
             position: absolute; top: 15px; right: 15px; background: var(--panel-bg);
             padding: 8px 15px; border-radius: 50px; font-size: 9px; font-weight: 800; z-index: 1000; border: 1px solid var(--border);
@@ -93,10 +100,9 @@
 
 <div class="app-shell">
     <aside>
-        <div class="brand-zone">
-            <div class="brand-logo">NAVRAKHSHAK</div>
-            <div style="font-size: 9px; opacity: 0.5;">3D TACTICAL ENGINE</div>
-        </div>
+        <div class="brand-logo">NAVRAKHSHAK</div>
+        <div style="font-size: 9px; opacity: 0.5;">3D STRATEGIC HUD</div>
+        
         <nav class="nav-group">
             <button class="nav-btn active" onclick="showPage('mapPage', this)"><i class="fa-solid fa-globe"></i> <span>Map</span></button>
             <button class="nav-btn" onclick="showPage('adminPage', this)"><i class="fa-solid fa-terminal"></i> <span>Command</span></button>
@@ -106,7 +112,7 @@
 
     <div class="viewport">
         <div id="cesiumContainer"></div>
-        <div class="hud-tag" id="statusBadge">3D: INITIALIZING</div>
+        <div class="hud-tag" id="statusBadge">3D: ONLINE</div>
 
         <div class="pos-overlay">
             <div style="font-size: 8px; opacity: 0.6;">UNIT_01 POSITION</div>
@@ -124,9 +130,9 @@
                     <input type="number" id="cmdRad" placeholder="Radius (m)">
                     <input type="number" id="cmdBuf" placeholder="Buffer (m)">
                 </div>
-                <button id="syncBtn" class="action-btn" onclick="updateGeofence()" disabled>DISPATCH</button>
+                <button id="syncBtn" class="action-btn" onclick="updateGeofence()" disabled>DISPATCH ZONE</button>
                 <div style="margin-top: 20px; border-top: 1px solid var(--border); padding-top: 15px;">
-                    <input type="password" id="adminPin" placeholder="Enter Master PIN" maxlength="4" oninput="checkAuth()">
+                    <input type="password" id="adminPin" placeholder="Enter PIN" maxlength="4" oninput="checkAuth()">
                 </div>
             </div>
         </section>
@@ -137,29 +143,37 @@
     const chID = "3300600", rKey = "M8RQ5ECSRWHF5ZRE", tbID = "56620", tbKey = "6H22BCX9X5LZ8II6";
     if (!localStorage.getItem('navPin')) localStorage.setItem('navPin', '1234');
 
-    // FIX: ADD EXPLICIT IMAGERY LAYER
-    const openStreetLayer = new Cesium.OpenStreetMapImageryProvider({
-        url: 'https://a.tile.openstreetmap.org/'
+    // FIX: ADD RELIABLE BASE IMAGERY
+    const imagery = new Cesium.OpenStreetMapImageryProvider({
+        url : 'https://a.tile.openstreetmap.org/'
     });
 
     const viewer = new Cesium.Viewer('cesiumContainer', {
-        imageryProvider: openStreetLayer, // Set default imagery
+        imageryProvider: imagery,
         terrainProvider: Cesium.createWorldTerrain(),
-        animation: false, timeline: false, baseLayerPicker: false, geocoder: false,
-        navigationHelpButton: false, sceneModePicker: true, homeButton: false, infoBox: false
+        baseLayerPicker: false,
+        geocoder: false,
+        homeButton: false,
+        infoBox: false,
+        sceneModePicker: true,
+        selectionIndicator: false,
+        navigationHelpButton: false,
+        animation: false,
+        timeline: false,
+        fullscreenButton: false
     });
 
-    // Zoom to Payradanga Area initially
+    // Initial view set to Payradanga
     viewer.camera.setView({
         destination: Cesium.Cartesian3.fromDegrees(88.5473, 23.1316, 2000.0),
         orientation: { heading: 0, pitch: Cesium.Math.toRadians(-45), roll: 0 }
     });
 
-    // Boat Marker
+    // Boat entity
     var boatPoint = viewer.entities.add({
         position: Cesium.Cartesian3.fromDegrees(88.54735, 23.13161),
         point: { pixelSize: 12, color: Cesium.Color.LIME, outlineColor: Cesium.Color.BLACK, outlineWidth: 2 },
-        label: { text: "VESSEL_NAV", font: "10px monospace", verticalOrigin: Cesium.VerticalOrigin.BOTTOM, pixelOffset: new Cesium.Cartesian2(0, -12) }
+        label: { text: "VESSEL_NAV", font: "10px monospace", verticalOrigin: Cesium.VerticalOrigin.BOTTOM, pixelOffset: new Cesium.Cartesian2(0, -15) }
     });
 
     // 3D Path Trail
@@ -172,14 +186,14 @@
         }
     });
 
-    // 3D Geofence Cylinder
+    // Geofence Cylinder
     var fenceEntity = viewer.entities.add({
         position: Cesium.Cartesian3.fromDegrees(88.54735, 23.13161),
         cylinder: {
-            length: 100.0,
+            length: 120.0,
             topRadius: 50.0,
             bottomRadius: 50.0,
-            material: Cesium.Color.CYAN.withAlpha(0.15),
+            material: Cesium.Color.CYAN.withAlpha(0.2),
             outline: true,
             outlineColor: Cesium.Color.CYAN
         }
@@ -221,8 +235,8 @@
                 } else {
                     badge.innerText = "3D ENGINE: ONLINE";
                     badge.classList.remove('danger-pulse');
-                    fenceEntity.cylinder.material = Cesium.Color.CYAN.withAlpha(0.15);
-                    fenceEntity.cylinder.length = 100.0;
+                    fenceEntity.cylinder.material = Cesium.Color.CYAN.withAlpha(0.2);
+                    fenceEntity.cylinder.length = 120.0;
                     pathEntity.polyline.material.color = Cesium.Color.LIME;
                 }
             }
@@ -230,7 +244,9 @@
     }
 
     async function updateGeofence() {
-        const lat = parseFloat(document.getElementById('cmdLat').value), lon = parseFloat(document.getElementById('cmdLon').value), rad = parseFloat(document.getElementById('cmdRad').value);
+        const lat = parseFloat(document.getElementById('cmdLat').value);
+        const lon = parseFloat(document.getElementById('cmdLon').value);
+        const rad = parseFloat(document.getElementById('cmdRad').value);
         const command = `SET:${lat},${lon},${rad},7`;
         await fetch(`https://api.thingspeak.com/talkbacks/${tbID}/commands.json?api_key=${tbKey}&command_string=${command}`, { method: 'POST' });
         fenceEntity.position = Cesium.Cartesian3.fromDegrees(lon, lat);
@@ -240,17 +256,16 @@
             destination: Cesium.Cartesian3.fromDegrees(lon, lat, 1200.0),
             orientation: { heading: 0, pitch: Cesium.Math.toRadians(-90), roll: 0 }
         });
-        alert("COMMAND DISPATCHED.");
+        alert("3D TACTICAL COMMAND SENT.");
     }
 
     async function acknowledgeSOS() {
-        if(document.getElementById('adminPin').value !== localStorage.getItem('navPin')) return alert("Auth Required.");
+        if(document.getElementById('adminPin').value !== localStorage.getItem('navPin')) return alert("PIN Required.");
         await fetch(`https://api.thingspeak.com/talkbacks/${tbID}/commands.json?api_key=${tbKey}&command_string=ACK_SOS`, { method: 'POST' });
         alert("BROADCAST SENT.");
     }
 
     setInterval(updateData, 15000);
-    updateData();
 </script>
 </body>
 </html>
