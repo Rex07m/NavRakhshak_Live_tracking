@@ -16,30 +16,25 @@
         }
 
         body, html { margin: 0; padding: 0; height: 100%; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); color: white; overflow: hidden; }
-
-        /* Main Layout */
         .wrapper { display: flex; height: 100vh; width: 100vw; }
 
         /* Sidebar */
         .sidebar { width: 320px; background: #161b22; border-right: 1px solid #30363d; display: flex; flex-direction: column; padding: 20px; z-index: 1000; box-shadow: 5px 0 15px rgba(0,0,0,0.5); }
         .logo { font-size: 22px; font-weight: bold; color: var(--primary); margin-bottom: 30px; display: flex; align-items: center; gap: 10px; }
         
-        /* Stats Cards */
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
         .stat-card { background: var(--card-bg); padding: 15px; border-radius: 8px; border: 1px solid #30363d; text-align: center; }
         .stat-card i { color: var(--primary); margin-bottom: 5px; font-size: 18px; }
         .stat-label { font-size: 10px; color: #8b949e; text-transform: uppercase; }
         .stat-value { font-size: 16px; font-weight: bold; margin-top: 5px; }
 
-        /* Map Area */
+        /* Map */
         .main-content { flex-grow: 1; position: relative; }
         #map { height: 100%; width: 100%; }
 
-        /* Overlay UI */
         .top-bar { position: absolute; top: 20px; left: 20px; right: 20px; display: flex; justify-content: space-between; align-items: center; z-index: 999; pointer-events: none; }
         .badge-status { pointer-events: auto; padding: 12px 25px; border-radius: 50px; font-weight: bold; background: var(--card-bg); border: 2px solid var(--primary); backdrop-filter: blur(10px); }
         
-        /* Control Forms */
         .form-group { margin-bottom: 15px; }
         label { display: block; font-size: 12px; color: #8b949e; margin-bottom: 5px; }
         input { width: 100%; background: #0d1117; border: 1px solid #30363d; color: white; padding: 10px; border-radius: 5px; box-sizing: border-box; }
@@ -51,9 +46,7 @@
         .btn-outline { background: transparent; border: 1px solid #30363d; color: white; font-size: 12px; }
         .btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
-        /* PIN Protection Overlay */
         .auth-bar { background: #0d1117; padding: 10px; border-radius: 8px; border: 1px solid var(--primary); margin-top: auto; }
-        
         .alert-flash { animation: pulse-red 1s infinite; border-color: var(--danger) !important; color: white !important; background: var(--danger) !important; }
         @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(255, 71, 87, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(255, 71, 87, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 71, 87, 0); } }
 
@@ -68,14 +61,14 @@
 
         <div class="stats-grid">
             <div class="stat-card">
-                <i class="fa-solid fa-satellite"></i>
-                <div class="stat-label">Sats</div>
-                <div id="statSats" class="stat-value">--</div>
+                <i class="fa-solid fa-clock"></i>
+                <div class="stat-label">Sync</div>
+                <div id="statTime" class="stat-value">--:--</div>
             </div>
             <div class="stat-card">
-                <i class="fa-solid fa-signal"></i>
-                <div class="stat-label">Signal</div>
-                <div id="statRSSI" class="stat-value">-- dBm</div>
+                <i class="fa-solid fa-tower-broadcast"></i>
+                <div class="stat-label">Status</div>
+                <div id="statConn" class="stat-value" style="font-size:12px">WAITING</div>
             </div>
         </div>
 
@@ -101,15 +94,15 @@
         </button>
 
         <button class="btn btn-outline" onclick="clearPath()">
-            <i class="fa-solid fa-eraser"></i> CLEAR PATH HISTORY
+            <i class="fa-solid fa-eraser"></i> CLEAR PATH
         </button>
 
         <div class="auth-bar">
             <label style="color:var(--primary); font-size:10px;">ENCRYPTED ACCESS PIN</label>
             <input type="password" id="adminPin" placeholder="****" oninput="checkAuth()">
             <div style="display:flex; justify-content: space-between; margin-top:5px;">
-                <a href="#" onclick="forgotPin()" style="font-size:10px; color:#555;">Forgot?</a>
-                <a href="#" onclick="openSettings()" style="font-size:10px; color:var(--primary);">Change PIN</a>
+                <a href="#" onclick="forgotPin()" style="font-size:10px; color:#555; text-decoration:none;">Forgot?</a>
+                <a href="#" onclick="openSettings()" style="font-size:10px; color:var(--primary); text-decoration:none;">Change PIN</a>
             </div>
         </div>
     </aside>
@@ -124,7 +117,7 @@
         
         <div id="map"></div>
 
-        <div style="position:absolute; bottom:20px; left:20px; background: rgba(0,0,0,0.7); padding:10px; border-radius:5px; z-index:999; border-left:4px solid var(--primary);">
+        <div style="position:absolute; bottom:20px; left:20px; background: rgba(0,0,0,0.7); padding:10px; border-radius:5px; z-index:999; border-left:4px solid #00f2ff;">
             <div id="boatCoords" style="font-family:monospace; font-size:14px;">POSITION: FETCHING...</div>
             <div id="last-sync" style="font-size:10px; color:#888; margin-top:5px;">LAST SYNC: --:--:--</div>
         </div>
@@ -132,7 +125,7 @@
 </div>
 
 <div id="settingsModal">
-    <div class="modal-content" style="background:#161b22; padding:30px; margin: 15% auto; width:300px; border:1px solid var(--primary); border-radius:10px;">
+    <div class="modal-content" style="background:#161b22; padding:30px; margin: 15% auto; width:300px; border:1px solid #00f2ff; border-radius:10px;">
         <h3 style="margin-top:0">Change Master PIN</h3>
         <input type="password" id="oldPin" placeholder="Current PIN">
         <input type="password" id="newPin" placeholder="New 4-Digit PIN" maxlength="4">
@@ -157,10 +150,10 @@
         maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3']
     }).addTo(map);
 
-    var boatPath = L.polyline([], {color: var(--primary), weight: 3, dashArray: '5, 10'}).addTo(map);
+    var boatPath = L.polyline([], {color: '#f1c40f', weight: 3}).addTo(map);
     var boatIcon = L.circleMarker([0,0], { radius: 10, color: '#fff', fillColor: '#007bff', fillOpacity: 1 }).addTo(map);
-    var visualFence = L.circle([23.13161, 88.54735], { radius: 50, color: var(--danger), weight: 2, fillOpacity: 0.1 }).addTo(map);
-    var safetyRing = L.circle([23.13161, 88.54735], { radius: 43, color: var(--primary), weight: 1, dashArray: '5, 10', fillOpacity: 0 }).addTo(map);
+    var visualFence = L.circle([23.13161, 88.54735], { radius: 50, color: '#ff4757', weight: 2, fillOpacity: 0.1 }).addTo(map);
+    var safetyRing = L.circle([23.13161, 88.54735], { radius: 43, color: '#00f2ff', weight: 1, dashArray: '5, 10', fillOpacity: 0 }).addTo(map);
 
     function checkAuth() {
         const entered = document.getElementById('adminPin').value;
@@ -171,12 +164,19 @@
         if(entered === current) {
             syncBtn.disabled = false;
             sosBtn.disabled = false;
-            document.querySelector('.auth-bar').style.borderColor = var(--success);
         } else {
             syncBtn.disabled = true;
             sosBtn.disabled = true;
-            document.querySelector('.auth-bar').style.borderColor = var(--primary);
         }
+    }
+
+    function updateMapVisuals(lat, lon, rad, buf) {
+        const center = [parseFloat(lat), parseFloat(lon)];
+        visualFence.setLatLng(center);
+        visualFence.setRadius(parseFloat(rad));
+        safetyRing.setLatLng(center);
+        safetyRing.setRadius(parseFloat(rad) - parseFloat(buf));
+        map.panTo(center);
     }
 
     async function updateData() {
@@ -194,9 +194,13 @@
                     const pos = [lat, lon];
                     boatIcon.setLatLng(pos);
                     boatPath.addLatLng(pos);
-                    document.getElementById('boatCoords').innerHTML = `<span style="color:var(--primary)">LAT:</span> ${lat.toFixed(6)} <span style="color:var(--primary); margin-left:10px;">LON:</span> ${lon.toFixed(6)}`;
+                    document.getElementById('boatCoords').innerHTML = `<span style="color:#00f2ff">LAT:</span> ${lat.toFixed(6)} <span style="color:#00f2ff; margin-left:10px;">LON:</span> ${lon.toFixed(6)}`;
+                    document.getElementById('statConn').innerText = "LIVE";
+                    document.getElementById('statConn').style.color = "#2ed573";
                 }
 
+                const timeStr = new Date(feed.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                document.getElementById('statTime').innerText = timeStr;
                 document.getElementById('last-sync').innerText = `LAST UPDATE: ${new Date(feed.created_at).toLocaleTimeString()}`;
                 
                 let statusDiv = document.getElementById('status');
@@ -204,7 +208,7 @@
 
                 if (statusMsg.includes("SOS")) {
                     statusDiv.className = "badge-status alert-flash";
-                    statusDiv.innerHTML = "<i class='fa-solid fa-triangle-exclamation'></i> EMERGENCY: SOS RECEIVED";
+                    statusDiv.innerHTML = "<i class='fa-solid fa-triangle-exclamation'></i> SOS RECEIVED";
                     sosBtn.style.display = "flex";
                 } else if (statusMsg.includes("ALERT")) {
                     statusDiv.className = "badge-status alert-flash";
@@ -212,13 +216,13 @@
                     sosBtn.style.display = "none";
                 } else {
                     statusDiv.className = "badge-status";
-                    statusDiv.style.borderColor = var(--success);
-                    statusDiv.style.color = var(--success);
-                    statusDiv.innerHTML = "<i class='fa-solid fa-circle-check'></i> SYSTEM SECURE: BOAT SAFE";
+                    statusDiv.style.borderColor = "#2ed573";
+                    statusDiv.style.color = "#2ed573";
+                    statusDiv.innerHTML = "<i class='fa-solid fa-circle-check'></i> SYSTEM SECURE";
                     sosBtn.style.display = "none";
                 }
             }
-        } catch (e) {}
+        } catch (e) { console.error(e); }
     }
 
     async function updateGeofence() {
@@ -226,11 +230,12 @@
         const lon = document.getElementById('cmdLon').value;
         const rad = document.getElementById('cmdRad').value;
         const buf = document.getElementById('cmdBuf').value;
+        if(!lat || !lon) return alert("Enter coordinates");
         sendCommand(`SET:${lat},${lon},${rad},${buf}`, "Command Sent");
         updateMapVisuals(lat, lon, rad, buf);
     }
 
-    async function acknowledgeSOS() { sendCommand("ACK_SOS", "SOS Cleared"); alert("Rescue Response Notified to Boat."); }
+    async function acknowledgeSOS() { sendCommand("ACK_SOS", "SOS Cleared"); alert("Rescue notified."); }
 
     async function sendCommand(cmdStr, successMsg) {
         const url = `https://api.thingspeak.com/talkbacks/${talkBackID}/commands.json`;
@@ -238,7 +243,7 @@
         params.append('api_key', talkBackKey);
         params.append('command_string', cmdStr);
         const res = await fetch(url, { method: 'POST', body: params });
-        if(res.ok) alert(successMsg);
+        if(res.ok) console.log(successMsg);
     }
 
     function openSettings() { document.getElementById('settingsModal').style.display = 'block'; }
@@ -246,19 +251,18 @@
     function saveNewPin() {
         if(document.getElementById('oldPin').value === localStorage.getItem('navPin')) {
             localStorage.setItem('navPin', document.getElementById('newPin').value);
-            alert("New Master PIN Active.");
-            location.reload();
-        }
+            alert("New PIN Saved.");
+            closeSettings();
+        } else { alert("Wrong current PIN"); }
     }
     function forgotPin() {
-        if(prompt("Security Question: Project Name?").toLowerCase() === "navrakhshak") {
+        if(prompt("Reset Question: Project Name?").toLowerCase() === "navrakhshak") {
             localStorage.setItem('navPin', '1234');
-            location.reload();
+            alert("Reset to 1234");
         }
     }
 
     function clearPath() { boatPath.setLatLngs([]); }
-    function var(name) { return getComputedStyle(document.documentElement).getPropertyValue(name); }
 
     setInterval(updateData, 15000);
     updateData();
