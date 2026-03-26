@@ -125,27 +125,11 @@
     const chID = "3300600", rKey = "M8RQ5ECSRWHF5ZRE", tbID = "56620", tbKey = "6H22BCX9X5LZ8II6";
     if (!localStorage.getItem('navPin')) localStorage.setItem('navPin', '1234');
 
-    function showPage(pID, btn) {
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-        if(pID !== 'mapPage') {
-            document.getElementById(pID).classList.add('active');
-        }
-        btn.classList.add('active');
-        // Critical: Update Leaflet size when map becomes visible
-        if(pID === 'mapPage') {
-            setTimeout(() => {
-                map.invalidateSize();
-                if(lastPos) map.panTo(lastPos);
-            }, 300);
-        }
-    }
-
-    // MAP INITIALIZATION
+    // Global variables to track the boat
     var map = L.map('map', {zoomControl: false, attributionControl: false}).setView([23.13161, 88.54735], 18);
-    var lastPos = null;
+    var lastLat = 0, lastLon = 0;
 
-    L.tileLayer('https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}', {
+    L.tileLayer('https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
         maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3']
     }).addTo(map);
 
@@ -153,8 +137,17 @@
     var boatIcon = L.circleMarker([23.13161, 88.54735], { radius: 10, color: '#fff', fillColor: '#007bff', fillOpacity: 1, weight: 3 }).addTo(map);
     var visualFence = L.circle([23.13161, 88.54735], { radius: 50, color: 'red', weight: 2, fillOpacity: 0.15 }).addTo(map);
 
-    // Keep Marker at top
-    boatIcon.bringToFront();
+    function showPage(pID, btn) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        if(pID !== 'mapPage') {
+            document.getElementById(pID).classList.add('active');
+        }
+        btn.classList.add('active');
+        if(pID === 'mapPage') {
+            setTimeout(() => { map.invalidateSize(); }, 300);
+        }
+    }
 
     function checkAuth() {
         const isAuth = document.getElementById('adminPin').value === localStorage.getItem('navPin');
@@ -163,39 +156,52 @@
 
     async function updateData() {
         try {
-            const res = await fetch(`https://api.thingspeak.com/channels/${chID}/feeds.json?api_key=${rKey}&results=1`);
+            // FORCE REFRESH: Added timestamp to prevent browser caching
+            const res = await fetch(`https://api.thingspeak.com/channels/${chID}/feeds.json?api_key=${rKey}&results=1&_=${new Date().getTime()}`);
             const data = await res.json();
             const feed = data.feeds[0];
+
             if (feed) {
-                const lat = parseFloat(feed.field1), lon = parseFloat(feed.field2);
+                const currentLat = parseFloat(feed.field1);
+                const currentLon = parseFloat(feed.field2);
                 const statusMsg = String(feed.field3 || "").toUpperCase();
-                
-                if (!isNaN(lat) && !isNaN(lon) && lat !== 0) {
-                    lastPos = [lat, lon];
-                    boatIcon.setLatLng(lastPos);
-                    boatPath.addLatLng(lastPos);
-                    document.getElementById('boatCoords').innerText = `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+
+                // Check if new location is different from last recorded location
+                if (!isNaN(currentLat) && !isNaN(currentLon) && (currentLat !== lastLat || currentLon !== lastLon)) {
+                    
+                    lastLat = currentLat;
+                    lastLon = currentLon;
+                    const newLatLng = [lastLat, lastLon];
+
+                    // Move Marker and Add to Path
+                    boatIcon.setLatLng(newLatLng);
+                    boatPath.addLatLng(newLatLng);
                     boatIcon.bringToFront();
+
+                    // Update UI Text
+                    document.getElementById('boatCoords').innerText = `${lastLat.toFixed(6)}, ${lastLon.toFixed(6)}`;
+                    
+                    // AUTO-CENTER MAP TO NEW LOCATION
+                    map.panTo(newLatLng);
                 }
-                
+
                 document.getElementById('syncTime').innerText = `SYNC: ${new Date(feed.created_at).toLocaleTimeString()}`;
                 
                 let badge = document.getElementById('statusBadge'), sosBtn = document.getElementById('sosNavBtn');
                 
-                // FIXED SOS DETECTION LOGIC
                 if (statusMsg.includes("SOS") || statusMsg.includes("ALERT")) {
                     badge.innerText = "ALARM: DISTRESS SIGNAL"; 
                     badge.classList.add('danger-pulse');
                     sosBtn.classList.add('danger-pulse');
-                    boatIcon.setStyle({fillColor: '#ff0000'}); // Turn boat red
+                    boatIcon.setStyle({fillColor: '#ff0000'}); 
                 } else {
                     badge.innerText = "LINK: SECURE / LIVE"; 
                     badge.classList.remove('danger-pulse');
                     sosBtn.classList.remove('danger-pulse');
-                    boatIcon.setStyle({fillColor: '#007bff'}); // Turn boat back to blue
+                    boatIcon.setStyle({fillColor: '#007bff'});
                 }
             }
-        } catch (e) { console.error("Telemetry Error:", e); }
+        } catch (e) { console.error("Update failed:", e); }
     }
 
     async function updateGeofence() {
@@ -210,28 +216,25 @@
         
         const res = await fetch(`https://api.thingspeak.com/talkbacks/${tbID}/commands.json`, { method: 'POST', body: params });
         if(res.ok) {
-            visualFence.setLatLng([lat, lon]);
+            visualFence.setLatLng([parseFloat(lat), parseFloat(lon)]);
             visualFence.setRadius(parseFloat(rad));
-            map.panTo([lat, lon]);
-            alert("COMMAND DISPATCHED: Boundary Updated.");
+            alert("BOUNDARY DISPATCHED.");
         }
     }
 
     async function acknowledgeSOS() {
-        if(document.getElementById('adminPin').value !== localStorage.getItem('navPin')) return alert("Enter PIN in Command Center tab first.");
-        
+        if(document.getElementById('adminPin').value !== localStorage.getItem('navPin')) return alert("Authorization Required.");
         const params = new URLSearchParams();
         params.append('api_key', tbKey);
         params.append('command_string', "ACK_SOS");
-        
         const res = await fetch(`https://api.thingspeak.com/talkbacks/${tbID}/commands.json`, { method: 'POST', body: params });
-        if(res.ok) alert("RESCUE ACK BROADCASTED.");
+        if(res.ok) alert("RESCUE ACKNOWLEDGED.");
     }
 
     function clearPath() { boatPath.setLatLngs([]); alert("MAP PURGED."); }
 
-    // Start fetching
-    setInterval(updateData, 10000); // Check every 10 seconds
+    // Start tracking
+    setInterval(updateData, 10000); 
     updateData();
 </script>
 </body>
