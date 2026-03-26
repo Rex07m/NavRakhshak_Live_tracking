@@ -31,26 +31,17 @@
 
         body, html { margin: 0; padding: 0; height: 100%; width: 100%; font-family: 'Space Grotesk', sans-serif; background: var(--bg-deep); color: var(--text-color); overflow: hidden; }
 
-        /* RESPONSIVE SHELL */
         .app-shell { display: flex; flex-direction: column; height: 100vh; width: 100vw; }
+        @media (min-width: 992px) { .app-shell { flex-direction: row; } }
 
-        @media (min-width: 992px) {
-            .app-shell { flex-direction: row; }
-        }
-
-        /* HUD SIDEBAR / BOTTOM BAR */
         aside {
             width: 100%; background: var(--panel-bg); backdrop-filter: blur(20px);
             border-top: 1px solid var(--border); display: flex; flex-direction: column;
             padding: 20px; z-index: 2000; flex-shrink: 0; box-sizing: border-box;
         }
-
-        @media (min-width: 992px) {
-            aside { width: 300px; height: 100vh; border-right: 1px solid var(--border); border-top: none; padding: 40px 30px; }
-        }
+        @media (min-width: 992px) { aside { width: 300px; height: 100vh; border-right: 1px solid var(--border); border-top: none; padding: 40px 30px; } }
 
         .brand-logo { font-family: 'Syncopate', sans-serif; font-weight: 700; font-size: 16px; letter-spacing: 2px; color: var(--accent); }
-        
         .nav-group { display: flex; flex-direction: row; gap: 10px; margin-top: 15px; }
         @media (min-width: 992px) { .nav-group { flex-direction: column; margin-top: 40px; } }
 
@@ -59,19 +50,13 @@
             text-transform: uppercase; letter-spacing: 1px; text-align: center; cursor: pointer;
             padding: 12px 5px; border-radius: 8px; transition: 0.3s; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
         }
-        @media (min-width: 992px) { 
-            .nav-btn { flex: none; flex-direction: row; text-align: left; padding: 12px 15px; font-size: 13px; justify-content: flex-start; } 
-        }
+        @media (min-width: 992px) { .nav-btn { flex: none; flex-direction: row; text-align: left; padding: 12px 15px; font-size: 13px; justify-content: flex-start; } }
         .nav-btn:hover, .nav-btn.active { background: var(--accent); color: #000; }
 
-        /* VIEWPORT */
         .viewport { flex-grow: 1; position: relative; width: 100%; height: 100%; overflow: hidden; }
-        #cesiumContainer { width: 100%; height: 100%; }
+        #cesiumContainer { width: 100%; height: 100%; background: #000; }
 
-        .page { 
-            position: absolute; inset: 0; display: none; padding: 20px; 
-            z-index: 100; pointer-events: none; justify-content: center; align-items: center;
-        }
+        .page { position: absolute; inset: 0; display: none; padding: 20px; z-index: 100; pointer-events: none; justify-content: center; align-items: center; }
         .page.active { display: flex; }
 
         .tech-panel {
@@ -91,7 +76,6 @@
             border-radius: 6px; cursor: pointer; transition: 0.3s;
         }
 
-        /* OVERLAYS */
         .hud-tag {
             position: absolute; top: 15px; right: 15px; background: var(--panel-bg);
             padding: 8px 15px; border-radius: 50px; font-size: 9px; font-weight: 800; z-index: 1000; border: 1px solid var(--border);
@@ -111,9 +95,8 @@
     <aside>
         <div class="brand-zone">
             <div class="brand-logo">NAVRAKHSHAK</div>
-            <div style="font-size: 9px; opacity: 0.5; display: none;" class="desktop-only">3D TACTICAL ENGINE</div>
+            <div style="font-size: 9px; opacity: 0.5;">3D TACTICAL ENGINE</div>
         </div>
-
         <nav class="nav-group">
             <button class="nav-btn active" onclick="showPage('mapPage', this)"><i class="fa-solid fa-globe"></i> <span>Map</span></button>
             <button class="nav-btn" onclick="showPage('adminPage', this)"><i class="fa-solid fa-terminal"></i> <span>Command</span></button>
@@ -123,7 +106,7 @@
 
     <div class="viewport">
         <div id="cesiumContainer"></div>
-        <div class="hud-tag" id="statusBadge">3D: ONLINE</div>
+        <div class="hud-tag" id="statusBadge">3D: INITIALIZING</div>
 
         <div class="pos-overlay">
             <div style="font-size: 8px; opacity: 0.6;">UNIT_01 POSITION</div>
@@ -154,37 +137,46 @@
     const chID = "3300600", rKey = "M8RQ5ECSRWHF5ZRE", tbID = "56620", tbKey = "6H22BCX9X5LZ8II6";
     if (!localStorage.getItem('navPin')) localStorage.setItem('navPin', '1234');
 
-    // INITIALIZE 3D GLOBE
+    // FIX: ADD EXPLICIT IMAGERY LAYER
+    const openStreetLayer = new Cesium.OpenStreetMapImageryProvider({
+        url: 'https://a.tile.openstreetmap.org/'
+    });
+
     const viewer = new Cesium.Viewer('cesiumContainer', {
+        imageryProvider: openStreetLayer, // Set default imagery
         terrainProvider: Cesium.createWorldTerrain(),
         animation: false, timeline: false, baseLayerPicker: false, geocoder: false,
-        navigationHelpButton: false, sceneModePicker: false, homeButton: false, infoBox: false
+        navigationHelpButton: false, sceneModePicker: true, homeButton: false, infoBox: false
     });
 
-    viewer.scene.globe.enableLighting = true;
+    // Zoom to Payradanga Area initially
+    viewer.camera.setView({
+        destination: Cesium.Cartesian3.fromDegrees(88.5473, 23.1316, 2000.0),
+        orientation: { heading: 0, pitch: Cesium.Math.toRadians(-45), roll: 0 }
+    });
 
-    // Vessel Entity
+    // Boat Marker
     var boatPoint = viewer.entities.add({
         position: Cesium.Cartesian3.fromDegrees(88.54735, 23.13161),
-        point: { pixelSize: 10, color: Cesium.Color.LIME, outlineColor: Cesium.Color.BLACK, outlineWidth: 2 },
-        label: { text: "NAV_01", font: "10px monospace", verticalOrigin: Cesium.VerticalOrigin.BOTTOM, pixelOffset: new Cesium.Cartesian2(0, -10) }
+        point: { pixelSize: 12, color: Cesium.Color.LIME, outlineColor: Cesium.Color.BLACK, outlineWidth: 2 },
+        label: { text: "VESSEL_NAV", font: "10px monospace", verticalOrigin: Cesium.VerticalOrigin.BOTTOM, pixelOffset: new Cesium.Cartesian2(0, -12) }
     });
 
-    // Vessel Path Ribbon (Trail)
+    // 3D Path Trail
     var pathPositions = [];
     var pathEntity = viewer.entities.add({
         polyline: {
             positions: new Cesium.CallbackProperty(() => pathPositions, false),
-            width: 3,
-            material: new Cesium.PolylineGlowMaterialProperty({ glowPower: 0.2, color: Cesium.Color.LIME })
+            width: 4,
+            material: new Cesium.PolylineGlowMaterialProperty({ glowPower: 0.1, color: Cesium.Color.LIME })
         }
     });
 
-    // 3D GEOFENCE CYLINDER
+    // 3D Geofence Cylinder
     var fenceEntity = viewer.entities.add({
         position: Cesium.Cartesian3.fromDegrees(88.54735, 23.13161),
         cylinder: {
-            length: 150.0,
+            length: 100.0,
             topRadius: 50.0,
             bottomRadius: 50.0,
             material: Cesium.Color.CYAN.withAlpha(0.15),
@@ -215,7 +207,7 @@
                 if (!isNaN(lat) && !isNaN(lon) && lat !== 0) {
                     const newPos = Cesium.Cartesian3.fromDegrees(lon, lat);
                     boatPoint.position = newPos;
-                    pathPositions.push(newPos); // Add to trail
+                    pathPositions.push(newPos);
                     document.getElementById('boatCoords').innerText = `${lat.toFixed(5)} , ${lon.toFixed(5)}`;
                 }
                 
@@ -224,13 +216,13 @@
                     badge.innerText = "TACTICAL ALERT: BREACH";
                     badge.classList.add('danger-pulse');
                     fenceEntity.cylinder.material = Cesium.Color.RED.withAlpha(0.5);
-                    fenceEntity.cylinder.length = 800.0; // Grows into a tower
+                    fenceEntity.cylinder.length = 800.0;
                     pathEntity.polyline.material.color = Cesium.Color.RED;
                 } else {
-                    badge.innerText = "SYSTEM SECURE";
+                    badge.innerText = "3D ENGINE: ONLINE";
                     badge.classList.remove('danger-pulse');
                     fenceEntity.cylinder.material = Cesium.Color.CYAN.withAlpha(0.15);
-                    fenceEntity.cylinder.length = 150.0;
+                    fenceEntity.cylinder.length = 100.0;
                     pathEntity.polyline.material.color = Cesium.Color.LIME;
                 }
             }
@@ -238,28 +230,27 @@
     }
 
     async function updateGeofence() {
-        const lat = parseFloat(document.getElementById('cmdLat').value);
-        const lon = parseFloat(document.getElementById('cmdLon').value);
-        const rad = parseFloat(document.getElementById('cmdRad').value);
+        const lat = parseFloat(document.getElementById('cmdLat').value), lon = parseFloat(document.getElementById('cmdLon').value), rad = parseFloat(document.getElementById('cmdRad').value);
         const command = `SET:${lat},${lon},${rad},7`;
         await fetch(`https://api.thingspeak.com/talkbacks/${tbID}/commands.json?api_key=${tbKey}&command_string=${command}`, { method: 'POST' });
         fenceEntity.position = Cesium.Cartesian3.fromDegrees(lon, lat);
         fenceEntity.cylinder.topRadius = rad;
         fenceEntity.cylinder.bottomRadius = rad;
         viewer.camera.flyTo({
-            destination: Cesium.Cartesian3.fromDegrees(lon, lat, 1500.0),
+            destination: Cesium.Cartesian3.fromDegrees(lon, lat, 1200.0),
             orientation: { heading: 0, pitch: Cesium.Math.toRadians(-90), roll: 0 }
         });
-        alert("3D TACTICAL DATA SYNCED.");
+        alert("COMMAND DISPATCHED.");
     }
 
     async function acknowledgeSOS() {
-        if(document.getElementById('adminPin').value !== localStorage.getItem('navPin')) return alert("Auth PIN required.");
+        if(document.getElementById('adminPin').value !== localStorage.getItem('navPin')) return alert("Auth Required.");
         await fetch(`https://api.thingspeak.com/talkbacks/${tbID}/commands.json?api_key=${tbKey}&command_string=ACK_SOS`, { method: 'POST' });
-        alert("BROADCAST DISPATCHED.");
+        alert("BROADCAST SENT.");
     }
 
     setInterval(updateData, 15000);
+    updateData();
 </script>
 </body>
 </html>
