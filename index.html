@@ -9,161 +9,144 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&family=Syncopate:wght@400;700&display=swap');
 
-        /* 1. ADAPTIVE THEME VARIABLES */
         :root {
-            /* Light Mode Default */
-            --bg-deep: #f8f9fa;
-            --main-panel: #ffffff;
-            --text-main: #1a1a1a;
-            --sanrita-sand: #1a1a1a;
-            --sanrita-accent: #007bff; /* Sharp Blue in light mode */
+            /* Light Theme (Default) */
+            --bg-deep: #f0f2f5;
+            --panel-bg: rgba(255, 255, 255, 0.9);
+            --text-color: #1a1c1e;
+            --accent: #0066ff;
             --danger: #ff3e3e;
-            --glass: rgba(255, 255, 255, 0.9);
-            --border: rgba(0, 0, 0, 0.1);
-            --grid-opacity: 0.05;
+            --border: rgba(0,0,0,0.1);
         }
 
         @media (prefers-color-scheme: dark) {
             :root {
-                --bg-deep: #0e1111;
-                --main-panel: #151c24;
-                --text-main: #e4e4d9;
-                --sanrita-sand: #e4e4d9;
-                --sanrita-accent: #d4ff00; /* Neon Lime in dark mode */
-                --glass: rgba(14, 17, 17, 0.85);
-                --border: rgba(255, 255, 255, 0.08);
-                --grid-opacity: 0.03;
+                --bg-deep: #0a0c10;
+                --panel-bg: rgba(13, 17, 23, 0.9);
+                --text-color: #e6edf3;
+                --accent: #d4ff00; /* Neon Lime for Dark Mode */
+                --border: rgba(255,255,255,0.1);
             }
         }
 
-        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Space Grotesk', sans-serif; background: var(--bg-deep); color: var(--text-main); overflow: hidden; transition: background 0.5s, color 0.5s; }
+        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Space Grotesk', sans-serif; background: var(--bg-deep); color: var(--text-color); overflow: hidden; }
 
-        /* HUD GRID OVERLAY */
-        .hud-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-image: radial-gradient(circle, var(--text-main) 1px, transparent 1px);
-            background-size: 40px 40px; opacity: var(--grid-opacity); pointer-events: none; z-index: 5;
-        }
+        .app-shell { display: flex; height: 100vh; width: 100vw; }
 
-        .app-shell { display: flex; height: 100vh; width: 100vw; position: relative; z-index: 10; }
-
-        /* SIDEBAR */
+        /* HUD SIDEBAR */
         aside {
-            width: 280px; background: var(--glass); backdrop-filter: blur(20px);
+            width: 280px; background: var(--panel-bg); backdrop-filter: blur(20px);
             border-right: 1px solid var(--border); display: flex; flex-direction: column;
-            padding: 40px 30px; gap: 40px; flex-shrink: 0; transition: background 0.5s;
+            padding: 40px 30px; gap: 40px; z-index: 2000; flex-shrink: 0;
         }
 
-        .brand-logo { font-family: 'Syncopate', sans-serif; font-weight: 700; font-size: 18px; letter-spacing: 4px; color: var(--sanrita-accent); }
-        .brand-sub { font-size: 9px; letter-spacing: 2px; opacity: 0.5; margin-top: 5px; text-transform: uppercase; }
-
-        .nav-group { display: flex; flex-direction: column; gap: 15px; }
+        .brand-logo { font-family: 'Syncopate', sans-serif; font-weight: 700; font-size: 18px; letter-spacing: 3px; color: var(--accent); }
+        
+        .nav-group { display: flex; flex-direction: column; gap: 10px; }
         .nav-btn {
-            background: none; border: none; color: var(--text-main); font-size: 14px; font-weight: 500;
+            background: none; border: none; color: var(--text-color); font-size: 13px; font-weight: 600;
             text-transform: uppercase; letter-spacing: 2px; text-align: left; cursor: pointer;
-            padding: 10px 0; opacity: 0.5; transition: 0.4s; display: flex; align-items: center; gap: 15px;
+            padding: 12px 15px; border-radius: 8px; transition: 0.3s; display: flex; align-items: center; gap: 15px;
         }
-        .nav-btn:hover, .nav-btn.active { opacity: 1; color: var(--sanrita-accent); transform: translateX(10px); }
+        .nav-btn:hover, .nav-btn.active { background: var(--accent); color: #000; }
 
-        /* CONTENT */
-        .viewport { flex-grow: 1; position: relative; height: 100%; }
-        .page { position: absolute; inset: 0; display: none; padding: 60px; z-index: 100; animation: pageIn 0.6s ease-out; }
-        .page.active { display: flex; flex-direction: column; }
-        #map { position: absolute; inset: 0; z-index: 1; }
+        /* VIEWPORT */
+        .viewport { flex-grow: 1; position: relative; height: 100%; background: #ccc; }
+        #map { height: 100%; width: 100%; z-index: 1; }
+
+        .page { 
+            position: absolute; inset: 0; display: none; padding: 40px; 
+            z-index: 100; pointer-events: none; justify-content: center; align-items: center;
+        }
+        .page.active { display: flex; }
 
         .tech-panel {
-            background: var(--glass); border: 1px solid var(--border);
-            padding: 40px; border-radius: 4px; width: 100%; max-width: 450px;
-            backdrop-filter: blur(15px); box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            background: var(--panel-bg); border: 1px solid var(--border);
+            padding: 35px; border-radius: 20px; width: 100%; max-width: 420px;
+            backdrop-filter: blur(25px); pointer-events: auto; box-shadow: 0 20px 50px rgba(0,0,0,0.2);
         }
-        .title-large { font-family: 'Syncopate', sans-serif; font-size: 28px; font-weight: 700; margin-bottom: 10px; }
-        .title-line { width: 40px; height: 3px; background: var(--sanrita-accent); margin-bottom: 30px; }
 
-        .tech-input {
-            width: 100%; background: rgba(128,128,128,0.1); border: none; border-bottom: 2px solid var(--border);
-            padding: 15px 5px; color: var(--text-main); font-family: inherit; font-size: 16px; margin-bottom: 15px;
+        .title-panel { font-family: 'Syncopate', sans-serif; font-size: 24px; font-weight: 700; margin-bottom: 20px; border-left: 4px solid var(--accent); padding-left: 15px; }
+
+        input {
+            width: 100%; background: rgba(128,128,128,0.1); border: 1px solid var(--border);
+            padding: 12px; color: var(--text-color); border-radius: 8px; font-family: monospace; margin-bottom: 15px; box-sizing: border-box;
         }
-        .tech-input:focus { border-color: var(--sanrita-accent); outline: none; }
 
         .action-btn {
-            width: 100%; background: var(--sanrita-accent); color: #000; border: none;
-            padding: 20px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px;
-            cursor: pointer; transition: 0.3s; margin-top: 20px;
+            width: 100%; background: var(--accent); color: #000; border: none;
+            padding: 18px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px;
+            border-radius: 8px; cursor: pointer; transition: 0.3s;
         }
-        .action-btn:disabled { background: #ccc; color: #666; cursor: not-allowed; }
+        .action-btn:disabled { background: #555; color: #888; cursor: not-allowed; }
 
-        /* HUD ELEMENTS */
-        .hud-status {
-            position: absolute; top: 40px; right: 40px; background: var(--glass);
-            border: 1px solid var(--border); padding: 12px 25px; border-radius: 40px;
-            font-size: 11px; font-weight: 700; z-index: 1000;
+        /* HUD OVERLAYS */
+        .hud-tag {
+            position: absolute; top: 30px; right: 30px; background: var(--panel-bg);
+            padding: 10px 20px; border-radius: 50px; font-size: 10px; font-weight: 800; z-index: 1000; border: 1px solid var(--border);
         }
-        .pos-marker {
-            position: absolute; bottom: 40px; left: 40px; border-left: 3px solid var(--sanrita-accent);
-            padding-left: 20px; z-index: 1000; background: var(--glass); padding: 10px 20px;
+        .pos-overlay {
+            position: absolute; bottom: 30px; left: 30px; background: var(--panel-bg);
+            padding: 15px 20px; border-radius: 12px; z-index: 1000; border-left: 4px solid var(--accent);
         }
 
-        @keyframes pageIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .danger-pulse { color: var(--danger) !important; animation: dangerFlash 1.5s infinite; opacity: 1 !important; }
-        @keyframes dangerFlash { 50% { opacity: 0.3; } }
+        .danger-pulse { background: var(--danger) !important; color: white !important; animation: flash 1s infinite; }
+        @keyframes flash { 50% { opacity: 0.5; } }
     </style>
 </head>
 <body>
-
-<div class="hud-overlay"></div>
 
 <div class="app-shell">
     <aside>
         <div class="brand-zone">
             <div class="brand-logo">NAVRAKHSHAK</div>
-            <div class="brand-sub">Adaptive Maritime HUD</div>
+            <div style="font-size: 9px; opacity: 0.5; letter-spacing: 1px;">ADAPTIVE MARITIME INTEL</div>
         </div>
 
         <nav class="nav-group">
-            <button class="nav-btn active" onclick="showPage('mapPage', this)"><i class="fa-solid fa-map-location-dot"></i> Surveillance</button>
-            <button class="nav-btn" onclick="showPage('adminPage', this)"><i class="fa-solid fa-terminal"></i> Command Terminal</button>
-            <button class="nav-btn" id="sosNavBtn" onclick="acknowledgeSOS()"><i class="fa-solid fa-tower-broadcast"></i> Rescue Signal</button>
+            <button class="nav-btn active" onclick="showPage('mapPage', this)"><i class="fa-solid fa-crosshairs"></i> Surveillance</button>
+            <button class="nav-btn" onclick="showPage('adminPage', this)"><i class="fa-solid fa-terminal"></i> Command Center</button>
+            <button class="nav-btn" id="sosNavBtn" onclick="acknowledgeSOS()"><i class="fa-solid fa-satellite-dish"></i> Rescue Ack</button>
         </nav>
 
-        <div style="font-size: 9px; opacity: 0.5; margin-top: auto;">
-            SYNC MODE: DEVICE ADAPTIVE<br>LORA CHANNEL: SECURE
+        <div style="margin-top: auto; font-size: 9px; opacity: 0.4; line-height: 1.8;">
+            CORE: JIS-ECE-07<br>MODE: ADAPTIVE UI<br>STATUS: ENCRYPTED
         </div>
     </aside>
 
     <div class="viewport">
         <div id="map"></div>
-        <div class="hud-status" id="statusBadge">SIGNAL: ESTABLISHING</div>
+        <div class="hud-tag" id="statusBadge">LINK: STANDBY</div>
 
-        <div class="pos-marker">
-            <div style="font-size: 10px; opacity: 0.6;">TRACKING UNIT 01</div>
-            <div id="boatCoords" style="font-size: 18px; font-weight: 700; font-family: monospace;">---.--- , ---.---</div>
-            <div id="syncClock" style="font-size: 10px; opacity: 0.6; margin-top: 5px;">SYNC: --:--:--</div>
+        <div class="pos-overlay">
+            <div style="font-size: 9px; opacity: 0.6; margin-bottom: 4px;">UNIT_01 POSITION</div>
+            <div id="boatCoords" style="font-size: 16px; font-weight: 800; font-family: monospace;">FETCHING...</div>
+            <div id="syncTime" style="font-size: 9px; opacity: 0.6; margin-top: 4px;">--:--:--</div>
         </div>
 
         <section id="adminPage" class="page">
             <div class="tech-panel">
-                <div class="title-large">COMMAND<br>CENTER</div>
-                <div class="title-line"></div>
+                <div class="title-panel">COMMAND</div>
                 
-                <div id="boundaryFields">
-                    <label>Zone Center Coordinates</label>
-                    <div style="display:flex; gap:10px;">
-                        <input type="number" id="cmdLat" class="tech-input" step="0.000001" placeholder="Lat">
-                        <input type="number" id="cmdLon" class="tech-input" step="0.000001" placeholder="Lon">
-                    </div>
-                    <div style="display:flex; gap:10px;">
-                        <div style="flex:1"><label>Radius (m)</label><input type="number" id="cmdRad" class="tech-input" placeholder="50"></div>
-                        <div style="flex:1"><label>Buffer (m)</label><input type="number" id="cmdBuf" class="tech-input" placeholder="7"></div>
-                    </div>
-                    <button id="syncBtn" class="action-btn" onclick="updateGeofence()" disabled>DISPATCH BOUNDARY</button>
+                <label style="font-size: 10px; opacity: 0.6;">NEW BOUNDARY COORDINATES</label>
+                <div style="display:flex; gap:10px; margin-top:5px;">
+                    <input type="number" id="cmdLat" step="0.000001" placeholder="Latitude">
+                    <input type="number" id="cmdLon" step="0.000001" placeholder="Longitude">
+                </div>
+                
+                <div style="display:flex; gap:10px;">
+                    <input type="number" id="cmdRad" placeholder="Radius (m)">
+                    <input type="number" id="cmdBuf" placeholder="Buffer (m)">
                 </div>
 
-                <div style="margin-top: 30px; border-top: 1px solid var(--border); padding-top: 20px;">
-                    <label>Master Authorization PIN</label>
-                    <input type="password" id="adminPin" class="tech-input" placeholder="****" maxlength="4" oninput="checkAuth()">
-                    <div style="display:flex; justify-content: space-between; align-items: center;">
-                        <button onclick="clearPath()" style="background:none; border:none; color:var(--sanrita-accent); cursor:pointer; font-size:11px;">PURGE MAP LOGS</button>
-                        <button onclick="openSettingsModal()" style="background:none; border:none; color:var(--text-main); opacity:0.5; cursor:pointer; font-size:11px;">CHANGE PIN</button>
+                <button id="syncBtn" class="action-btn" onclick="updateGeofence()" disabled>DISPATCH ZONE</button>
+
+                <div style="margin-top: 25px; border-top: 1px solid var(--border); padding-top: 20px;">
+                    <label style="font-size: 10px; opacity: 0.6;">MASTER AUTHORIZATION</label>
+                    <input type="password" id="adminPin" placeholder="Enter PIN" maxlength="4" oninput="checkAuth()">
+                    <div style="display:flex; justify-content: space-between;">
+                        <button onclick="clearPath()" style="background:none; border:none; color:var(--accent); cursor:pointer; font-size:10px; font-weight:700;">PURGE PATHS</button>
+                        <button onclick="openSettingsModal()" style="background:none; border:none; color:var(--text-color); opacity:0.5; cursor:pointer; font-size:10px;">RESET PIN</button>
                     </div>
                 </div>
             </div>
@@ -171,13 +154,13 @@
     </div>
 </div>
 
-<div id="settingsModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:9000; align-items:center; justify-content:center; backdrop-filter:blur(10px);">
+<div id="settingsModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:9000; align-items:center; justify-content:center; backdrop-filter:blur(10px);">
     <div class="tech-panel">
-        <h2 style="font-family:'Syncopate'; font-size:18px;">SECURE RESET</h2>
-        <label>Verify Old Key</label><input type="password" id="oldPin" class="tech-input">
-        <label>New 4-Digit Key</label><input type="password" id="newPin" class="tech-input" maxlength="4">
-        <button class="action-btn" onclick="saveNewPin()">UPDATE KEY</button>
-        <button class="btn" style="background:none; color:var(--text-main); border:none; margin-top:10px; cursor:pointer;" onclick="closeSettings()">CANCEL</button>
+        <h3 style="font-family:'Syncopate';">RE-KEY SYSTEM</h3>
+        <input type="password" id="oldPin" placeholder="Verify Current Key">
+        <input type="password" id="newPin" placeholder="New 4-Digit Key" maxlength="4">
+        <button class="action-btn" onclick="saveNewPin()">APPLY KEY</button>
+        <button onclick="closeSettings()" style="background:none; border:none; color:white; width:100%; margin-top:10px; cursor:pointer;">CANCEL</button>
     </div>
 </div>
 
@@ -191,16 +174,20 @@
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
         if(pID !== 'mapPage') document.getElementById(pID).classList.add('active');
         btn.classList.add('active');
-        if(pID === 'mapPage') setTimeout(() => map.invalidateSize(), 300);
+        // Force the map to fill the container after switching back
+        if(pID === 'mapPage') {
+            setTimeout(() => { map.invalidateSize(); }, 200);
+        }
     }
 
-    // 2. TOPOGRAPHICAL MAP STYLE
+    // TOPOGRAPHICAL MAP INITIALIZATION
     var map = L.map('map', {zoomControl: false}).setView([23.13161, 88.54735], 16);
-    L.tileLayer('https://{s}.tile.thunderforest.com/outdoors/{z}/{x}/{y}.png?apikey=f6f059c29f4340d89254378f44533967', {
-        maxZoom: 22
+    L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+        maxZoom: 17,
+        attribution: 'Map data: &copy; OpenStreetMap contributors, SRTM | Map style: &copy; OpenTopoMap'
     }).addTo(map);
 
-    var boatPath = L.polyline([], {color: 'orange', weight: 3, dashArray: '10, 10'}).addTo(map);
+    var boatPath = L.polyline([], {color: '#ff9900', weight: 3, opacity: 0.7}).addTo(map);
     var boatIcon = L.circleMarker([0,0], { radius: 10, color: '#000', fillColor: '#d4ff00', fillOpacity: 1, weight: 3 }).addTo(map);
     var visualFence = L.circle([23.13161, 88.54735], { radius: 50, color: 'red', weight: 2, fillOpacity: 0.1 }).addTo(map);
 
@@ -220,15 +207,15 @@
                     boatIcon.setLatLng([lat, lon]); boatPath.addLatLng([lat, lon]);
                     document.getElementById('boatCoords').innerText = `${lat.toFixed(6)} , ${lon.toFixed(6)}`;
                 }
-                document.getElementById('syncClock').innerText = `SYNC: ${new Date(feed.created_at).toLocaleTimeString()}`;
+                document.getElementById('syncTime').innerText = new Date(feed.created_at).toLocaleTimeString();
                 
                 let badge = document.getElementById('statusBadge'), sosBtn = document.getElementById('sosNavBtn');
                 if (statusMsg.includes("SOS")) {
-                    badge.innerText = "DISTRESS SIGNAL"; badge.style.color = "red";
+                    badge.innerText = "ALARM: DISTRESS SIGNAL"; badge.classList.add('danger-pulse');
                     sosBtn.classList.add('danger-pulse');
                 } else {
-                    badge.innerText = "LINK: ENCRYPTED / SECURE"; badge.style.color = "var(--sanrita-accent)";
-                    sosNavBtn.classList.remove('danger-pulse');
+                    badge.innerText = "LINK: SECURE / LIVE"; badge.classList.remove('danger-pulse');
+                    sosBtn.classList.remove('danger-pulse');
                 }
             }
         } catch (e) {}
@@ -237,17 +224,19 @@
     async function updateGeofence() {
         const lat = document.getElementById('cmdLat').value, lon = document.getElementById('cmdLon').value, rad = document.getElementById('cmdRad').value, buf = document.getElementById('cmdBuf').value;
         const params = new URLSearchParams(); params.append('api_key', tbKey); params.append('command_string', `SET:${lat},${lon},${rad},${buf}`);
-        await fetch(`https://api.thingspeak.com/talkbacks/${tbID}/commands.json`, { method: 'POST', body: params });
-        visualFence.setLatLng([lat, lon]); visualFence.setRadius(parseFloat(rad));
-        alert("COMMAND DISPATCHED.");
+        const res = await fetch(`https://api.thingspeak.com/talkbacks/${tbID}/commands.json`, { method: 'POST', body: params });
+        if(res.ok) {
+            visualFence.setLatLng([lat, lon]); visualFence.setRadius(parseFloat(rad));
+            alert("BOUNDARY DISPATCHED.");
+        }
     }
 
     async function acknowledgeSOS() {
         const isAuth = document.getElementById('adminPin').value === localStorage.getItem('navPin');
-        if(!isAuth) { alert("PIN Required in Command Center tab."); return; }
+        if(!isAuth) return alert("AUTH REQUIRED: Enter PIN in Command Center.");
         const params = new URLSearchParams(); params.append('api_key', tbKey); params.append('command_string', "ACK_SOS");
         await fetch(`https://api.thingspeak.com/talkbacks/${tbID}/commands.json`, { method: 'POST', body: params });
-        alert("BROADCAST SENT.");
+        alert("RESCUE ACK BROADCASTED.");
     }
 
     function openSettingsModal() { document.getElementById('settingsModal').style.display = 'flex'; }
