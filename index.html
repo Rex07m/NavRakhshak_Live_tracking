@@ -7,259 +7,264 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&family=Syncopate:wght@400;700&display=swap');
+
         :root {
-            --bg-primary: #f4f4f2;
-            --bg-dark: #121212;
-            --accent: #d4ff00;
+            --bg-deep: #0e1111;
+            --sanrita-sand: #e4e4d9;
+            --sanrita-accent: #d4ff00; /* Neon Lime */
             --danger: #ff3e3e;
-            --text-dark: #1a1a1a;
-            --border: rgba(0,0,0,0.1);
+            --glass: rgba(14, 17, 17, 0.85);
+            --border: rgba(255, 255, 255, 0.08);
         }
 
-        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Inter', sans-serif; background: var(--bg-primary); color: var(--text-dark); overflow: hidden; }
+        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Space Grotesk', sans-serif; background: var(--bg-deep); color: var(--sanrita-sand); overflow: hidden; }
 
-        .app-container { display: flex; height: 100vh; width: 100vw; }
-
-        /* NAV BAR */
-        nav { 
-            width: 80px; background: var(--bg-dark); display: flex; flex-direction: column; 
-            align-items: center; padding: 20px 0; gap: 30px; z-index: 2000; flex-shrink: 0;
-        }
-        .nav-item { 
-            color: #555; font-size: 20px; cursor: pointer; transition: 0.3s; 
-            width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; border-radius: 12px;
-        }
-        .nav-item:hover, .nav-item.active { color: var(--accent); background: rgba(212, 255, 0, 0.1); }
-        .nav-item.danger-active { color: var(--danger); animation: pulse-red 1s infinite; }
-
-        /* PAGES */
-        .page { display: none; flex-grow: 1; height: 100%; position: relative; overflow-y: auto; padding: 40px; box-sizing: border-box; }
-        .page.active { display: flex; flex-direction: column; }
-        #mapPage { padding: 0; } 
-
-        #map { height: 100%; width: 100%; }
-
-        .panel { 
-            max-width: 600px; width: 100%; margin: auto; background: white; padding: 40px; 
-            border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.05); 
-            border: 1px solid var(--border); box-sizing: border-box;
-        }
-        .header-title { font-size: 42px; font-weight: 900; text-transform: uppercase; letter-spacing: -2px; margin-bottom: 30px; line-height: 1; }
-
-        .input-group { margin-bottom: 20px; }
-        label { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; margin-bottom: 8px; color: #888; }
-        input { 
-            width: 100%; border: none; background: #f0f0f0; padding: 15px; border-radius: 12px; 
-            font-size: 16px; font-weight: 600; box-sizing: border-box;
+        /* HUD GRID OVERLAY */
+        .hud-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 40px 40px; pointer-events: none; z-index: 5;
         }
 
-        .btn { 
-            padding: 20px; border-radius: 14px; border: none; font-weight: 800; text-transform: uppercase;
-            cursor: pointer; transition: 0.3s; width: 100%; margin-top: 15px; font-size: 14px;
-            display: flex; align-items: center; justify-content: center; gap: 10px;
-        }
-        .btn-black { background: var(--bg-dark); color: white; }
-        .btn-black:hover:not(:disabled) { background: #333; transform: scale(1.02); }
-        .btn-black:disabled { background: #ccc; cursor: not-allowed; opacity: 0.6; color: #666; }
+        .app-shell { display: flex; height: 100vh; width: 100vw; position: relative; z-index: 10; }
 
-        /* OVERLAYS */
-        .top-status {
-            position: absolute; top: 20px; left: 20px; z-index: 1000;
-            background: var(--bg-dark); color: white; padding: 10px 20px; border-radius: 40px;
-            font-weight: 700; font-size: 11px; display: flex; align-items: center; gap: 10px;
+        /* SANRITA SIDEBAR */
+        aside {
+            width: 280px; background: var(--glass); backdrop-filter: blur(20px);
+            border-right: 1px solid var(--border); display: flex; flex-direction: column;
+            padding: 40px 30px; gap: 40px; flex-shrink: 0;
         }
 
-        .floating-pos {
-            position: absolute; bottom: 20px; right: 20px; z-index: 1000;
-            background: white; padding: 15px 20px; border-radius: 15px; border: 1px solid var(--border);
+        .brand-zone { margin-bottom: 20px; }
+        .brand-logo { font-family: 'Syncopate', sans-serif; font-weight: 700; font-size: 18px; letter-spacing: 4px; color: var(--sanrita-accent); }
+        .brand-sub { font-size: 9px; letter-spacing: 2px; opacity: 0.5; margin-top: 5px; text-transform: uppercase; }
+
+        .nav-group { display: flex; flex-direction: column; gap: 15px; }
+        .nav-btn {
+            background: none; border: none; color: var(--sanrita-sand); font-size: 14px; font-weight: 500;
+            text-transform: uppercase; letter-spacing: 2px; text-align: left; cursor: pointer;
+            padding: 10px 0; opacity: 0.4; transition: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex; align-items: center; gap: 15px;
+        }
+        .nav-btn:hover, .nav-btn.active { opacity: 1; color: var(--sanrita-accent); transform: translateX(10px); }
+        .nav-btn i { font-size: 12px; }
+
+        /* CONTENT PAGES */
+        .viewport { flex-grow: 1; position: relative; height: 100%; }
+        .page { 
+            position: absolute; inset: 0; display: none; padding: 60px; 
+            flex-direction: column; align-items: flex-start; z-index: 100;
+            animation: pageIn 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .page.active { display: flex; }
+        #map { position: absolute; inset: 0; z-index: 1; filter: grayscale(0.8) contrast(1.2) brightness(0.8); }
+
+        /* TECHNICAL PANELS (Multi-Page Content) */
+        .tech-panel {
+            background: var(--glass); border: 1px solid var(--border);
+            padding: 40px; border-radius: 2px; width: 100%; max-width: 450px;
+            backdrop-filter: blur(15px);
+        }
+        .title-large { font-family: 'Syncopate', sans-serif; font-size: 32px; font-weight: 700; margin-bottom: 10px; line-height: 1; }
+        .title-line { width: 40px; height: 2px; background: var(--sanrita-accent); margin-bottom: 30px; }
+
+        /* FORM ELEMENTS */
+        .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%; margin-bottom: 20px; }
+        .tech-input {
+            width: 100%; background: rgba(255,255,255,0.03); border: none; border-bottom: 1px solid var(--border);
+            padding: 15px 5px; color: #fff; font-family: 'Space Grotesk', sans-serif; font-size: 16px;
+            transition: 0.3s;
+        }
+        .tech-input:focus { border-color: var(--sanrita-accent); outline: none; background: rgba(255,255,255,0.05); }
+        label { font-size: 10px; text-transform: uppercase; letter-spacing: 2px; opacity: 0.4; display: block; margin-top: 15px; }
+
+        /* ACTION BUTTONS */
+        .action-btn {
+            width: 100%; background: var(--sanrita-accent); color: #000; border: none;
+            padding: 20px; font-weight: 700; text-transform: uppercase; letter-spacing: 3px;
+            margin-top: 30px; cursor: pointer; transition: 0.4s; clip-path: polygon(0 0, 100% 0, 100% 70%, 90% 100%, 0 100%);
+        }
+        .action-btn:hover:not(:disabled) { background: #fff; transform: scale(1.02); }
+        .action-btn:disabled { background: #222; color: #444; cursor: not-allowed; }
+
+        /* HUD INDICATORS */
+        .hud-status {
+            position: absolute; top: 40px; right: 40px; background: var(--glass);
+            border: 1px solid var(--border); padding: 12px 25px; border-radius: 40px;
+            font-size: 11px; font-weight: 700; letter-spacing: 2px; z-index: 1000;
         }
 
-        @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(255, 62, 62, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(255, 62, 62, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 62, 62, 0); } }
+        .pos-marker {
+            position: absolute; bottom: 40px; left: 40px; border-left: 2px solid var(--sanrita-accent);
+            padding-left: 20px; z-index: 1000;
+        }
+
+        @keyframes pageIn { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
+        .danger-pulse { color: var(--danger); animation: dangerFlash 1.5s infinite; }
+        @keyframes dangerFlash { 50% { opacity: 0.2; } }
     </style>
 </head>
 <body>
 
-<div class="app-container">
-    <nav>
-        <div class="nav-item active" onclick="showPage('mapPage', this)"><i class="fa-solid fa-map"></i></div>
-        <div class="nav-item" onclick="showPage('boundaryPage', this)"><i class="fa-solid fa-arrows-to-dot"></i></div>
-        <div id="sosNav" class="nav-item" onclick="acknowledgeSOS()"><i class="fa-solid fa-kit-medical"></i></div>
-        <div class="nav-item" onclick="showPage('securityPage', this)" style="margin-top: auto;"><i class="fa-solid fa-lock" id="mainLockIcon"></i></div>
-    </nav>
+<div class="hud-overlay"></div>
 
-    <section id="mapPage" class="page active">
-        <div class="top-status">
-            <span id="statDot" style="width: 8px; height: 8px; border-radius: 50%; background: var(--accent);"></span>
-            <span id="statusLabel">VESSEL SECURE</span>
-            <span id="lastSyncTime" style="opacity: 0.4;">--:--</span>
+<div class="app-shell">
+    <aside>
+        <div class="brand-zone">
+            <div class="brand-logo">NAVRAKHSHAK</div>
+            <div class="brand-sub">Maritime Control System</div>
         </div>
+
+        <nav class="nav-group">
+            <button class="nav-btn active" onclick="showPage('mapPage', this)"><i class="fa-solid fa-earth-americas"></i> Map View</button>
+            <button class="nav-btn" onclick="showPage('boundaryPage', this)"><i class="fa-solid fa-bullseye"></i> Zone Settings</button>
+            <button class="nav-btn" id="sosNavBtn" onclick="acknowledgeSOS()"><i class="fa-solid fa-shield-heart"></i> Dispatch Rescue</button>
+            <button class="nav-btn" onclick="showPage('adminPage', this)" style="margin-top: auto;"><i class="fa-solid fa-fingerprint"></i> Terminal Access</button>
+        </nav>
+
+        <div style="font-size: 9px; opacity: 0.3; line-height: 2;">
+            EST. 2026<br>PROJECT NO. JIS-ECE-07<br>ENCRYPTED LORA PROTOCOL
+        </div>
+    </aside>
+
+    <div class="viewport">
         <div id="map"></div>
-        <div class="floating-pos">
-            <label>Live Coordinates</label>
-            <div id="boatCoords" style="font-size: 16px; font-weight: 900; font-family: monospace;">FETCHING...</div>
-        </div>
-    </section>
+        <div class="hud-status" id="statusBadge">LINK: ESTABLISHING...</div>
 
-    <section id="boundaryPage" class="page">
-        <div class="panel">
-            <div class="header-title">BOUNDARY<br><span style="color:var(--accent); background:black; padding: 0 10px;">ENFORCEMENT</span></div>
-            
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                <div class="input-group"><label>Center Latitude</label><input type="number" id="cmdLat" step="0.000001" placeholder="23.1316"></div>
-                <div class="input-group"><label>Center Longitude</label><input type="number" id="cmdLon" step="0.000001" placeholder="88.5473"></div>
-            </div>
-            
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                <div class="input-group"><label>Fence Radius (m)</label><input type="number" id="cmdRad" placeholder="50"></div>
-                <div class="input-group"><label>Safety Buffer (m)</label><input type="number" id="cmdBuf" placeholder="7"></div>
-            </div>
-
-            <button id="syncBtn" class="btn btn-black" onclick="updateGeofence()" disabled>
-                <i class="fa-solid fa-lock" id="lockIcon"></i>
-                <span id="btnText">ACCESS DENIED: LOCKED</span>
-            </button>
+        <div class="pos-marker">
+            <div style="font-size: 10px; opacity: 0.5; margin-bottom: 5px;">CURRENT POSITION (LAT/LON)</div>
+            <div id="boatCoords" style="font-size: 20px; font-weight: 700; letter-spacing: -1px;">FETCHING TELEMETRY</div>
+            <div id="syncClock" style="font-size: 10px; opacity: 0.5; margin-top: 5px;">SYNC: --:--:--</div>
         </div>
-    </section>
 
-    <section id="securityPage" class="page">
-        <div class="panel">
-            <div class="header-title">SECURITY<br>TERMINAL</div>
-            <div class="input-group">
-                <label>Admin Master PIN</label>
-                <input type="password" id="adminPin" placeholder="Type 1234 to Unlock" maxlength="4" oninput="checkAuth()">
+        <section id="boundaryPage" class="page">
+            <div class="tech-panel">
+                <div class="title-large">ZONE<br>PROTOCOL</div>
+                <div class="title-line"></div>
+                
+                <div class="input-row">
+                    <div><label>Center Lat</label><input type="number" id="cmdLat" class="tech-input" step="0.000001" placeholder="23.1316"></div>
+                    <div><label>Center Lon</label><input type="number" id="cmdLon" class="tech-input" step="0.000001" placeholder="88.5473"></div>
+                </div>
+                <div class="input-row">
+                    <div><label>Safe Radius (m)</label><input type="number" id="cmdRad" class="tech-input" placeholder="50"></div>
+                    <div><label>Buffer Zone (m)</label><input type="number" id="cmdBuf" class="tech-input" placeholder="7"></div>
+                </div>
+                
+                <button id="syncBtn" class="action-btn" onclick="updateGeofence()" disabled>SYNC COMMAND</button>
+                <div id="lockStateMsg" style="font-size: 10px; margin-top: 20px; opacity: 0.4;">[ STANDBY: ENTER TERMINAL PIN TO UNLOCK ]</div>
             </div>
-            <div id="authStatus" style="font-size: 12px; font-weight: 700; margin-bottom: 10px; color: #ff3e3e;">SYSTEM LOCKED</div>
-            <button class="btn btn-black" onclick="openPinModal()">UPDATE SYSTEM PIN</button>
-            <button class="btn" style="background:#eee" onclick="clearPath()">CLEAR MAP PATHS</button>
-            <div style="text-align: center; margin-top: 30px;">
-                <a href="#" onclick="forgotPin()" style="font-size: 11px; color: #bbb; text-decoration: none;">System Reset to Default</a>
+        </section>
+
+        <section id="adminPage" class="page">
+            <div class="tech-panel">
+                <div class="title-large">ACCESS<br>TERMINAL</div>
+                <div class="title-line"></div>
+                
+                <label>Encrypted Master Pin</label>
+                <input type="password" id="adminPin" class="tech-input" placeholder="****" maxlength="4" oninput="checkAuth()">
+                
+                <div id="authStatusText" style="font-size: 12px; margin-top: 15px; font-weight: 700; color: var(--danger);">AUTH: DENIED</div>
+                
+                <button class="action-btn" style="background: white;" onclick="openSettingsModal()">RECONFIGURE KEY</button>
+                <button class="action-btn" style="background: rgba(255,255,255,0.1); color: #fff; margin-top: 10px;" onclick="clearPath()">PURGE PATH LOGS</button>
             </div>
-        </div>
-    </section>
+        </section>
+    </div>
 </div>
 
-<div id="settingsModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.98); z-index:3000; align-items: center; justify-content: center;">
-    <div class="panel">
-        <h2>Update Master PIN</h2>
-        <input type="password" id="oldPin" placeholder="Current PIN" style="margin-bottom: 10px;">
-        <input type="password" id="newPin" placeholder="New PIN" maxlength="4">
-        <button class="btn btn-black" onclick="saveNewPin()">UPDATE</button>
-        <button class="btn" onclick="closeSettings()">CANCEL</button>
+<div id="settingsModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.95); z-index:9000; align-items:center; justify-content:center;">
+    <div class="tech-panel" style="background: #111;">
+        <h2 style="font-family:'Syncopate'; font-size:18px;">KEY UPDATE</h2>
+        <label>Current Key</label><input type="password" id="oldPin" class="tech-input">
+        <label>New 4-Digit Key</label><input type="password" id="newPin" class="tech-input" maxlength="4">
+        <button class="action-btn" onclick="saveNewPin()">APPLY UPDATE</button>
+        <button class="action-btn" style="background:none; color:#888;" onclick="closeSettings()">CANCEL</button>
     </div>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    const channelID = "3300600", readKey = "M8RQ5ECSRWHF5ZRE", talkBackID = "56620", talkBackKey = "6H22BCX9X5LZ8II6";
-    
+    const chID = "3300600", rKey = "M8RQ5ECSRWHF5ZRE", tbID = "56620", tbKey = "6H22BCX9X5LZ8II6";
     if (!localStorage.getItem('navPin')) localStorage.setItem('navPin', '1234');
 
-    function showPage(pageId, elm) {
+    // Multi-Page Navigation
+    function showPage(pID, btn) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-        document.getElementById(pageId).classList.add('active');
-        elm.classList.add('active');
-        if(pageId === 'mapPage') setTimeout(() => map.invalidateSize(), 200);
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(pID).classList.add('active');
+        btn.classList.add('active');
+        if(pID === 'mapPage') setTimeout(() => map.invalidateSize(), 300);
     }
 
+    // Map Setup
     var map = L.map('map', {zoomControl: false}).setView([23.13161, 88.54735], 18);
-    L.tileLayer('https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}', { maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3'] }).addTo(map);
+    L.tileLayer('https://{s}.google.com/vt/lyrs=y,h&x={x}&y={y}&z={z}', { maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3'] }).addTo(map);
 
-    var boatPath = L.polyline([], {color: '#000', weight: 2, dashArray: '5, 10'}).addTo(map);
-    var boatIcon = L.circleMarker([0,0], { radius: 10, color: '#000', fillColor: '#d4ff00', fillOpacity: 1, weight: 4 }).addTo(map);
+    var boatPath = L.polyline([], {color: '#d4ff00', weight: 1, opacity: 0.5}).addTo(map);
+    var boatIcon = L.circleMarker([0,0], { radius: 10, color: '#000', fillColor: '#d4ff00', fillOpacity: 1, weight: 5 }).addTo(map);
     var visualFence = L.circle([23.13161, 88.54735], { radius: 50, color: '#ff3e3e', weight: 1, fillOpacity: 0.05 }).addTo(map);
-    var safetyRing = L.circle([23.13161, 88.54735], { radius: 43, color: '#000', weight: 1, dashArray: '5, 5', fillOpacity: 0 }).addTo(map);
 
-    function checkAuth() {
-        const pinInput = document.getElementById('adminPin').value;
-        const savedPin = localStorage.getItem('navPin');
-        const syncBtn = document.getElementById('syncBtn');
-        const lockIcon = document.getElementById('lockIcon');
-        const mainLock = document.getElementById('mainLockIcon');
-        const btnText = document.getElementById('btnText');
-        const authStatus = document.getElementById('authStatus');
-
-        if(pinInput === savedPin) {
-            syncBtn.disabled = false;
-            lockIcon.className = "fa-solid fa-unlock";
-            mainLock.style.color = "#d4ff00";
-            btnText.innerText = "AUTHORIZE & DISPATCH";
-            syncBtn.style.background = "#d4ff00";
-            syncBtn.style.color = "#000";
-            authStatus.innerText = "UNLOCKED: SESSION ACTIVE";
-            authStatus.style.color = "#00e676";
-        } else {
-            syncBtn.disabled = true;
-            lockIcon.className = "fa-solid fa-lock";
-            mainLock.style.color = "";
-            btnText.innerText = "ACCESS DENIED: LOCKED";
-            syncBtn.style.background = "";
-            syncBtn.style.color = "";
-            authStatus.innerText = "SYSTEM LOCKED";
-            authStatus.style.color = "#ff3e3e";
-        }
-    }
-
+    // Live Telemetry Logic
     async function updateData() {
         try {
-            const res = await fetch(`https://api.thingspeak.com/channels/${channelID}/feeds.json?api_key=${readKey}&results=1`);
+            const res = await fetch(`https://api.thingspeak.com/channels/${chID}/feeds.json?api_key=${rKey}&results=1`);
             const data = await res.json();
             const feed = data.feeds[0];
             if (feed) {
                 const lat = parseFloat(feed.field1), lon = parseFloat(feed.field2), statusMsg = String(feed.field3 || "").toUpperCase();
                 if (!isNaN(lat) && !isNaN(lon) && lat !== 0) {
                     boatIcon.setLatLng([lat, lon]); boatPath.addLatLng([lat, lon]);
-                    document.getElementById('boatCoords').innerText = `LAT: ${lat.toFixed(5)} | LON: ${lon.toFixed(5)}`;
+                    document.getElementById('boatCoords').innerText = `${lat.toFixed(6)} N / ${lon.toFixed(6)} E`;
                 }
-                document.getElementById('lastSyncTime').innerText = new Date(feed.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+                document.getElementById('syncClock').innerText = `SYNC: ${new Date(feed.created_at).toLocaleTimeString()}`;
                 
-                let label = document.getElementById('statusLabel'), dot = document.getElementById('statDot'), sosNav = document.getElementById('sosNav');
+                let badge = document.getElementById('statusBadge'), sosBtn = document.getElementById('sosNavBtn');
                 if (statusMsg.includes("SOS")) {
-                    label.innerText = "DISTRESS SIGNAL"; dot.style.background = "red";
-                    sosNav.classList.add('danger-active');
-                } else if (statusMsg.includes("ALERT")) {
-                    label.innerText = "BOUNDARY BREACH"; dot.style.background = "orange";
-                    sosNav.classList.remove('danger-active');
+                    badge.innerText = "DISTRESS SIGNAL DETECTED"; badge.style.color = "red";
+                    sosBtn.classList.add('danger-pulse');
                 } else {
-                    label.innerText = "VESSEL SECURE"; dot.style.background = "#d4ff00";
-                    sosNav.classList.remove('danger-active');
+                    badge.innerText = "LINK: ENCRYPTED / SECURE"; badge.style.color = "#d4ff00";
+                    sosBtn.classList.remove('danger-pulse');
                 }
             }
         } catch (e) {}
     }
 
+    // Security Logic
+    function checkAuth() {
+        const isAuth = document.getElementById('adminPin').value === localStorage.getItem('navPin');
+        document.getElementById('syncBtn').disabled = !isAuth;
+        document.getElementById('authStatusText').innerText = isAuth ? "AUTH: VERIFIED" : "AUTH: DENIED";
+        document.getElementById('authStatusText').style.color = isAuth ? "#d4ff00" : "#ff3e3e";
+        document.getElementById('lockStateMsg').innerText = isAuth ? "[ SYSTEM READY: ACCESS GRANTED ]" : "[ STANDBY: ENTER TERMINAL PIN TO UNLOCK ]";
+    }
+
     async function updateGeofence() {
         const lat = document.getElementById('cmdLat').value, lon = document.getElementById('cmdLon').value, rad = document.getElementById('cmdRad').value, buf = document.getElementById('cmdBuf').value;
-        const params = new URLSearchParams(); params.append('api_key', talkBackKey); params.append('command_string', `SET:${lat},${lon},${rad},${buf}`);
-        const res = await fetch(`https://api.thingspeak.com/talkbacks/${talkBackID}/commands.json`, { method: 'POST', body: params });
-        if(res.ok) {
-            visualFence.setLatLng([lat, lon]); visualFence.setRadius(parseFloat(rad));
-            safetyRing.setLatLng([lat, lon]); safetyRing.setRadius(parseFloat(rad) - parseFloat(buf));
-            map.flyTo([lat, lon], 18);
-            alert("COMMAND DISPATCHED");
-        }
+        const params = new URLSearchParams(); params.append('api_key', tbKey); params.append('command_string', `SET:${lat},${lon},${rad},${buf}`);
+        await fetch(`https://api.thingspeak.com/talkbacks/${tbID}/commands.json`, { method: 'POST', body: params });
+        visualFence.setLatLng([lat, lon]); visualFence.setRadius(parseFloat(rad));
+        alert("GEOGRAPHIC COMMAND DISPATCHED.");
     }
 
     async function acknowledgeSOS() {
         const isAuth = document.getElementById('adminPin').value === localStorage.getItem('navPin');
-        if(!isAuth) {
-            showPage('securityPage', document.querySelector('[title="Admin"]'));
-            return alert("Authentication Required: Enter PIN first.");
-        }
-        const params = new URLSearchParams(); params.append('api_key', talkBackKey); params.append('command_string', "ACK_SOS");
-        await fetch(`https://api.thingspeak.com/talkbacks/${talkBackID}/commands.json`, { method: 'POST', body: params });
-        alert("BROADCAST SENT");
+        if(!isAuth) { showPage('adminPage', document.querySelector('.fa-fingerprint').parentElement); return alert("Terminal Authorization Required."); }
+        const params = new URLSearchParams(); params.append('api_key', tbKey); params.append('command_string', "ACK_SOS");
+        await fetch(`https://api.thingspeak.com/talkbacks/${tbID}/commands.json`, { method: 'POST', body: params });
+        alert("BROADCAST SENT: RESCUE COORDINATED.");
     }
 
-    function openPinModal() { document.getElementById('settingsModal').style.display = 'flex'; }
+    function openSettingsModal() { document.getElementById('settingsModal').style.display = 'flex'; }
     function closeSettings() { document.getElementById('settingsModal').style.display = 'none'; }
     function saveNewPin() {
         if(document.getElementById('oldPin').value === localStorage.getItem('navPin')) {
-            localStorage.setItem('navPin', document.getElementById('newPin').value); alert("PIN UPDATED"); location.reload();
-        } else { alert("Verification Failed"); }
+            localStorage.setItem('navPin', document.getElementById('newPin').value); alert("NEW SECURITY KEY STORED."); closeSettings();
+        } else { alert("KEY MISMATCH."); }
     }
-    function forgotPin() { if(prompt("Project Name?").toLowerCase() === "navrakhshak") { localStorage.setItem('navPin', '1234'); location.reload(); }}
-    function clearPath() { boatPath.setLatLngs([]); alert("PURGED"); }
+    function clearPath() { boatPath.setLatLngs([]); alert("MAP PURGED."); }
 
     setInterval(updateData, 15000); updateData();
 </script>
