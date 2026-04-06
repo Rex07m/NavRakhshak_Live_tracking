@@ -100,10 +100,10 @@
         <section id="adminPage" class="page">
             <div class="tech-panel">
                 <div style="font-family:'Syncopate'; font-weight:700; margin-bottom:20px; font-size:22px;">COMMAND</div>
-                <label style="font-size:10px; opacity:0.6;">BOUNDARY SETTINGS</label>
-                <div style="display:flex; gap:10px;">
-                    <input type="number" id="cmdLat" step="0.000001" placeholder="Latitude">
-                    <input type="number" id="cmdLon" step="0.000001" placeholder="Longitude">
+                <label style="font-size:10px; opacity:0.6;">CURRENT BOUNDARY: <span id="curFenceTxt">LOADING...</span></label>
+                <div style="display:flex; gap:10px; margin-top:10px;">
+                    <input type="number" id="cmdLat" step="0.000001" placeholder="New Latitude">
+                    <input type="number" id="cmdLon" step="0.000001" placeholder="New Longitude">
                 </div>
                 <div style="display:flex; gap:10px;">
                     <input type="number" id="cmdRad" placeholder="Radius (m)">
@@ -125,8 +125,7 @@
     const chID = "3300600", rKey = "M8RQ5ECSRWHF5ZRE", tbID = "56620", tbKey = "6H22BCX9X5LZ8II6";
     if (!localStorage.getItem('navPin')) localStorage.setItem('navPin', '1234');
 
-    // Global variables to track the boat
-    var map = L.map('map', {zoomControl: false, attributionControl: false}).setView([23.13161, 88.54735], 18);
+    var map = L.map('map', {zoomControl: false, attributionControl: false}).setView([23.13161, 88.54735], 16);
     var lastLat = 0, lastLon = 0;
 
     L.tileLayer('https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
@@ -134,19 +133,17 @@
     }).addTo(map);
 
     var boatPath = L.polyline([], {color: '#d4ff00', weight: 4, opacity: 0.8}).addTo(map);
-    var boatIcon = L.circleMarker([23.13161, 88.54735], { radius: 10, color: '#fff', fillColor: '#007bff', fillOpacity: 1, weight: 3 }).addTo(map);
+    var boatIcon = L.circleMarker([0,0], { radius: 10, color: '#fff', fillColor: '#007bff', fillOpacity: 1, weight: 3 }).addTo(map);
+    
+    // Initial visual fence (Red Circle)
     var visualFence = L.circle([23.13161, 88.54735], { radius: 50, color: 'red', weight: 2, fillOpacity: 0.15 }).addTo(map);
 
     function showPage(pID, btn) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-        if(pID !== 'mapPage') {
-            document.getElementById(pID).classList.add('active');
-        }
+        if(pID !== 'mapPage') { document.getElementById(pID).classList.add('active'); }
         btn.classList.add('active');
-        if(pID === 'mapPage') {
-            setTimeout(() => { map.invalidateSize(); }, 300);
-        }
+        if(pID === 'mapPage') { setTimeout(() => { map.invalidateSize(); }, 300); }
     }
 
     function checkAuth() {
@@ -154,9 +151,27 @@
         document.getElementById('syncBtn').disabled = !isAuth;
     }
 
+    // --- NEW: FETCH THE SAVED GEOFENCE ON STARTUP ---
+    async function fetchGeofence() {
+        try {
+            const res = await fetch(`https://api.thingspeak.com/channels/${chID}/feeds.json?api_key=${rKey}&results=1`);
+            const data = await res.json();
+            const feed = data.feeds[0];
+            if (feed && feed.field4 && feed.field5) {
+                const fLat = parseFloat(feed.field4);
+                const fLon = parseFloat(feed.field5);
+                const fRad = parseFloat(feed.field6) || 50;
+                
+                visualFence.setLatLng([fLat, fLon]);
+                visualFence.setRadius(fRad);
+                document.getElementById('curFenceTxt').innerText = `${fLat.toFixed(4)}, ${fLon.toFixed(4)} (${fRad}m)`;
+                console.log("Geofence Synced from Cloud");
+            }
+        } catch (e) { console.error("Fence sync failed:", e); }
+    }
+
     async function updateData() {
         try {
-            // FORCE REFRESH: Added timestamp to prevent browser caching
             const res = await fetch(`https://api.thingspeak.com/channels/${chID}/feeds.json?api_key=${rKey}&results=1&_=${new Date().getTime()}`);
             const data = await res.json();
             const feed = data.feeds[0];
@@ -166,27 +181,19 @@
                 const currentLon = parseFloat(feed.field2);
                 const statusMsg = String(feed.field3 || "").toUpperCase();
 
-                // Check if new location is different from last recorded location
                 if (!isNaN(currentLat) && !isNaN(currentLon) && (currentLat !== lastLat || currentLon !== lastLon)) {
-                    
                     lastLat = currentLat;
                     lastLon = currentLon;
                     const newLatLng = [lastLat, lastLon];
 
-                    // Move Marker and Add to Path
                     boatIcon.setLatLng(newLatLng);
                     boatPath.addLatLng(newLatLng);
                     boatIcon.bringToFront();
-
-                    // Update UI Text
                     document.getElementById('boatCoords').innerText = `${lastLat.toFixed(6)}, ${lastLon.toFixed(6)}`;
-                    
-                    // AUTO-CENTER MAP TO NEW LOCATION
                     map.panTo(newLatLng);
                 }
 
                 document.getElementById('syncTime').innerText = `SYNC: ${new Date(feed.created_at).toLocaleTimeString()}`;
-                
                 let badge = document.getElementById('statusBadge'), sosBtn = document.getElementById('sosNavBtn');
                 
                 if (statusMsg.includes("SOS") || statusMsg.includes("ALERT")) {
@@ -205,9 +212,12 @@
     }
 
     async function updateGeofence() {
-        const lat = document.getElementById('cmdLat').value, lon = document.getElementById('cmdLon').value;
-        const rad = document.getElementById('cmdRad').value, buf = document.getElementById('cmdBuf').value;
-        if(!lat || !lon) return alert("Enter valid coordinates");
+        const lat = document.getElementById('cmdLat').value;
+        const lon = document.getElementById('cmdLon').value;
+        const rad = document.getElementById('cmdRad').value;
+        const buf = document.getElementById('cmdBuf').value || 7;
+        
+        if(!lat || !lon || !rad) return alert("Please fill Latitude, Longitude, and Radius.");
         
         const command = `SET:${lat},${lon},${rad},${buf}`;
         const params = new URLSearchParams();
@@ -218,7 +228,8 @@
         if(res.ok) {
             visualFence.setLatLng([parseFloat(lat), parseFloat(lon)]);
             visualFence.setRadius(parseFloat(rad));
-            alert("BOUNDARY DISPATCHED.");
+            document.getElementById('curFenceTxt').innerText = `${parseFloat(lat).toFixed(4)}, ${parseFloat(lon).toFixed(4)} (${rad}m)`;
+            alert("COMMAND DISPATCHED: ESP32 will update on next check-in.");
         }
     }
 
@@ -233,7 +244,8 @@
 
     function clearPath() { boatPath.setLatLngs([]); alert("MAP PURGED."); }
 
-    // Start tracking
+    // Init Logic
+    fetchGeofence(); // Sync current boundary on load
     setInterval(updateData, 10000); 
     updateData();
 </script>
