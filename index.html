@@ -121,15 +121,14 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    // --- CONFIG & PERSISTENCE ---
     const chID = "3300600", rKey = "M8RQ5ECSRWHF5ZRE", tbID = "56620", tbKey = "6H22BCX9X5LZ8II6";
     
-    // Load persisted settings or use defaults
-    const savedLat = parseFloat(localStorage.getItem('fenceLat')) || 23.13161;
-    const savedLon = parseFloat(localStorage.getItem('fenceLon')) || 88.54735;
-    const savedRad = parseFloat(localStorage.getItem('fenceRad')) || 50;
+    // --- LOAD SAVED DATA IMMEDIATELY ---
+    let fenceLat = parseFloat(localStorage.getItem('fLat')) || 23.13161;
+    let fenceLon = parseFloat(localStorage.getItem('fLon')) || 88.54735;
+    let fenceRad = parseFloat(localStorage.getItem('fRad')) || 50;
 
-    var map = L.map('map', {zoomControl: false, attributionControl: false}).setView([savedLat, savedLon], 18);
+    var map = L.map('map', {zoomControl: false, attributionControl: false}).setView([fenceLat, fenceLon], 18);
     var lastLat = 0, lastLon = 0;
 
     L.tileLayer('https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
@@ -137,15 +136,20 @@
     }).addTo(map);
 
     var boatPath = L.polyline([], {color: '#d4ff00', weight: 4, opacity: 0.8}).addTo(map);
-    var boatIcon = L.circleMarker([savedLat, savedLon], { radius: 10, color: '#fff', fillColor: '#007bff', fillOpacity: 1, weight: 3 }).addTo(map);
+    var boatIcon = L.circleMarker([fenceLat, fenceLon], { radius: 10, color: '#fff', fillColor: '#007bff', fillOpacity: 1, weight: 3 }).addTo(map);
     
-    // Initializing Visual Fence using SAVED values to prevent reset on refresh
-    var visualFence = L.circle([savedLat, savedLon], { 
-        radius: savedRad, 
+    // Initialize Visual Fence with no-delay cached values
+    var visualFence = L.circle([fenceLat, fenceLon], { 
+        radius: fenceRad, 
         color: 'red', 
         weight: 2, 
         fillOpacity: 0.15 
     }).addTo(map);
+
+    // Sync input boxes with saved data
+    document.getElementById('cmdLat').value = fenceLat;
+    document.getElementById('cmdLon').value = fenceLon;
+    document.getElementById('cmdRad').value = fenceRad;
 
     function showPage(pID, btn) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -160,54 +164,49 @@
         document.getElementById('syncBtn').disabled = !isAuth;
     }
 
-    // --- FETCH LAST SETTINGS FROM CLOUD ---
+    // Refresh Local visuals and cache
+    function syncVisuals(lat, lon, rad) {
+        visualFence.setLatLng([lat, lon]);
+        visualFence.setRadius(rad);
+        localStorage.setItem('fLat', lat);
+        localStorage.setItem('fLon', lon);
+        localStorage.setItem('fRad', rad);
+        console.log("Mobile Cache Synced:", rad);
+    }
+
     async function fetchLastSettings() {
         try {
-            const res = await fetch(`https://api.thingspeak.com/talkbacks/${tbID}/commands.json?api_key=${tbKey}`);
+            // Force bypass cache for mobile
+            const res = await fetch(`https://api.thingspeak.com/talkbacks/${tbID}/commands.json?api_key=${tbKey}&_=${Date.now()}`);
             const commands = await res.json();
             const lastSetCmd = commands.reverse().find(c => c.command_string.startsWith("SET:"));
             
             if (lastSetCmd) {
                 const parts = lastSetCmd.command_string.replace("SET:", "").split(",");
                 const lat = parseFloat(parts[0]), lon = parseFloat(parts[1]), rad = parseFloat(parts[2]);
-                
-                if(!isNaN(lat) && !isNaN(lon) && !isNaN(rad)) {
-                    updateLocalVisuals(lat, lon, rad);
-                }
+                if(!isNaN(lat)) syncVisuals(lat, lon, rad);
             }
         } catch (e) { console.error("Cloud fetch failed", e); }
     }
 
-    function updateLocalVisuals(lat, lon, rad) {
-        visualFence.setLatLng([lat, lon]);
-        visualFence.setRadius(rad);
-        // Save to LocalStorage so refresh doesn't reset it
-        localStorage.setItem('fenceLat', lat);
-        localStorage.setItem('fenceLon', lon);
-        localStorage.setItem('fenceRad', rad);
-    }
-
     async function updateData() {
         try {
-            const res = await fetch(`https://api.thingspeak.com/channels/${chID}/feeds.json?api_key=${rKey}&results=1&_=${new Date().getTime()}`);
+            const res = await fetch(`https://api.thingspeak.com/channels/${chID}/feeds.json?api_key=${rKey}&results=1&_=${Date.now()}`);
             const data = await res.json();
             const feed = data.feeds[0];
 
             if (feed) {
-                const currentLat = parseFloat(feed.field1), currentLon = parseFloat(feed.field2);
-                const statusMsg = String(feed.field3 || "").toUpperCase();
-
-                if (!isNaN(currentLat) && !isNaN(currentLon) && (currentLat !== lastLat || currentLon !== lastLon)) {
-                    lastLat = currentLat; lastLon = currentLon;
+                const cLat = parseFloat(feed.field1), cLon = parseFloat(feed.field2);
+                if (!isNaN(cLat)) {
+                    lastLat = cLat; lastLon = cLon;
                     boatIcon.setLatLng([lastLat, lastLon]);
                     boatPath.addLatLng([lastLat, lastLon]);
                     document.getElementById('boatCoords').innerText = `${lastLat.toFixed(6)}, ${lastLon.toFixed(6)}`;
-                    map.panTo([lastLat, lastLon]);
                 }
-
                 document.getElementById('syncTime').innerText = `SYNC: ${new Date(feed.created_at).toLocaleTimeString()}`;
-                let badge = document.getElementById('statusBadge'), sosBtn = document.getElementById('sosNavBtn');
                 
+                let badge = document.getElementById('statusBadge'), sosBtn = document.getElementById('sosNavBtn');
+                const statusMsg = String(feed.field3 || "").toUpperCase();
                 if (statusMsg.includes("SOS") || statusMsg.includes("ALERT")) {
                     badge.innerText = "ALARM: DISTRESS SIGNAL"; 
                     badge.classList.add('danger-pulse');
@@ -226,12 +225,9 @@
     async function updateGeofence() {
         const lat = document.getElementById('cmdLat').value, lon = document.getElementById('cmdLon').value;
         const rad = document.getElementById('cmdRad').value, buf = document.getElementById('cmdBuf').value;
-        if(!lat || !lon || !rad) return alert("Enter valid parameters");
         
-        // 1. Update UI Instantly
-        updateLocalVisuals(parseFloat(lat), parseFloat(lon), parseFloat(rad));
+        syncVisuals(parseFloat(lat), parseFloat(lon), parseFloat(rad));
 
-        // 2. Dispatch to Cloud
         const command = `SET:${lat},${lon},${rad},${buf}`;
         const params = new URLSearchParams();
         params.append('api_key', tbKey);
@@ -242,7 +238,7 @@
     }
 
     async function acknowledgeSOS() {
-        if(document.getElementById('adminPin').value !== (localStorage.getItem('navPin') || '1234')) return alert("Authorization Required.");
+        if(document.getElementById('adminPin').value !== (localStorage.getItem('navPin') || '1234')) return alert("Auth Required.");
         const params = new URLSearchParams();
         params.append('api_key', tbKey);
         params.append('command_string', "ACK_SOS");
@@ -252,10 +248,15 @@
 
     function clearPath() { boatPath.setLatLngs([]); alert("MAP PURGED."); }
 
-    // Start
-    fetchLastSettings();
-    setInterval(updateData, 10000); 
-    updateData();
+    // --- MOBILE STARTUP SEQUENCE ---
+    window.addEventListener('DOMContentLoaded', () => {
+        fetchLastSettings();
+        updateData();
+        setInterval(updateData, 10000); 
+    });
+
+    // Fix for mobile orientation changes
+    window.addEventListener('resize', () => { map.invalidateSize(); });
 </script>
 </body>
 </html>
