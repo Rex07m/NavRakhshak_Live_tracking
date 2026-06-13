@@ -125,8 +125,15 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
 <script>
+    // --- INTEGRATED LIVE SYSTEM CONFIGURATION ENDPOINT ---
     const firebaseConfig = {
-        databaseURL: "https://navrakhshak-web-default-rtdb.firebaseio.com"
+        apiKey: "AIzaSyCxrvcgU0cnZsthDZp3eRKKeO0QQWYdDoA",
+        authDomain: "navrakhshak-web.firebaseapp.com",
+        databaseURL: "https://navrakhshak-web-default-rtdb.firebaseio.com",
+        projectId: "navrakhshak-web",
+        storageBucket: "navrakhshak-web.appspot.com",
+        messagingSenderId: "690586658424",
+        appId: "1:690586658424:web:be9438d65035863783af8d"
     };
     
     firebase.initializeApp(firebaseConfig);
@@ -166,16 +173,10 @@
         if(pID === 'mapPage') setTimeout(() => { map.invalidateSize(); }, 300);
     }
 
-    // FIXED: Formatted comparison logic precisely handles string comparison against '1234'
     function checkAuth() {
         const enteredPin = document.getElementById('adminPin').value;
         const savedPin = localStorage.getItem('navPin') || '1234';
-        
-        if (enteredPin === savedPin) {
-            document.getElementById('syncBtn').disabled = false;
-        } else {
-            document.getElementById('syncBtn').disabled = true;
-        }
+        document.getElementById('syncBtn').disabled = (enteredPin !== savedPin);
     }
 
     function syncVisuals(lat, lon, rad, buf) {
@@ -188,7 +189,6 @@
     }
 
     function initializeFirebaseListeners() {
-        // 1. Telemetry Listener with Safety Checks for null data
         db.ref('boat').on('value', (snapshot) => {
             const data = snapshot.val();
             let badge = document.getElementById('statusBadge');
@@ -227,7 +227,6 @@
             }
         });
 
-        // 2. Preferences Listener
         db.ref('preferences').on('value', (snapshot) => {
             const prefs = snapshot.val();
             if (prefs && prefs.lat && prefs.lon) {
@@ -249,7 +248,6 @@
         if (isNaN(lat) || isNaN(lon) || isNaN(rad)) return alert("Please enter valid parameters.");
         
         syncVisuals(lat, lon, rad, buf);
-
         db.ref('preferences').set({ lat: lat, lon: lon, rad: rad, buf: buf });
 
         const commandString = `SET:${lat},${lon},${rad},${buf}`;
@@ -268,7 +266,6 @@
         });
     }
 
-    // DEBUG FUNCTION: Instantly populates an empty Firebase tree to unlock the frontend map for testing
     function injectDemoData() {
         db.ref('boat').set({
             latitude: 23.131610,
@@ -291,7 +288,6 @@
     window.addEventListener('DOMContentLoaded', () => {
         initializeFirebaseListeners();
     });
-
     window.addEventListener('resize', () => { map.invalidateSize(); });
 </script>
 </body>
