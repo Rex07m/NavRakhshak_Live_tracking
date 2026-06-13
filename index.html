@@ -88,11 +88,11 @@
 
     <div class="viewport">
         <div id="map"></div>
-        <div class="hud-tag" id="statusBadge">LINK: READY</div>
+        <div class="hud-tag" id="statusBadge">LINK: INITIALIZING</div>
 
         <div class="pos-overlay">
             <div style="font-size: 10px; opacity: 0.6; margin-bottom: 5px; font-weight: 700;">TELEMETRY [LAT, LON]</div>
-            <div id="boatCoords">CONNECTING...</div>
+            <div id="boatCoords">AWAITING HARDWARE...</div>
             <div id="syncTime" style="font-size: 10px; opacity: 0.6; margin-top: 5px;">DIST TO EDGE: -- m</div>
         </div>
 
@@ -111,8 +111,9 @@
                 <button id="syncBtn" class="action-btn" onclick="updateGeofence()" disabled>DISPATCH BOUNDARY</button>
                 <div style="margin-top: 25px; border-top: 1px solid var(--border); padding-top: 20px;">
                     <label style="font-size:10px; opacity:0.6;">AUTHENTICATION</label>
-                    <input type="password" id="adminPin" placeholder="Master PIN" maxlength="4" oninput="checkAuth()">
-                    <button onclick="clearPath()" style="background:none; border:none; color:var(--accent); cursor:pointer; font-size:11px; font-weight:700;">PURGE HISTORY</button>
+                    <input type="password" id="adminPin" placeholder="Master PIN (Type 1234)" maxlength="4" oninput="checkAuth()">
+                    <button onclick="clearPath()" style="background:none; border:none; color:var(--accent); cursor:pointer; font-size:11px; font-weight:700; padding:10px 0;">PURGE HISTORY</button>
+                    <button onclick="injectDemoData()" style="background:none; border:none; color:gray; cursor:pointer; font-size:11px; display:block; margin-top:5px;">[DEBUG] INJECT TEST HARDWARE DATA</button>
                 </div>
             </div>
         </section>
@@ -120,12 +121,10 @@
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
 <script>
-    // --- FIREBASE WEB APPLICATION INITIALIZATION CONFIGURATION ---
     const firebaseConfig = {
         databaseURL: "https://navrakhshak-web-default-rtdb.firebaseio.com"
     };
@@ -133,12 +132,11 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // --- RETAINED REGIONAL CACHE STRUCTURE ---
-    let fenceLat = parseFloat(localStorage.getItem('fLat')) || 23.131654;
-    let fenceLon = parseFloat(localStorage.getItem('fLon')) || 88.547243;
+    let fenceLat = parseFloat(localStorage.getItem('fLat')) || 23.13161;
+    let fenceLon = parseFloat(localStorage.getItem('fLon')) || 88.54735;
     let fenceRad = parseFloat(localStorage.getItem('fRad')) || 50;
 
-    var map = L.map('map', {zoomControl: false, attributionControl: false}).setView([fenceLat, fenceLon], 18);
+    var map = L.map('map', {zoomControl: false, attributionControl: false}).setView([fenceLat, fenceLon], 16);
     var lastLat = 0, lastLon = 0;
 
     L.tileLayer('https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
@@ -155,7 +153,6 @@
         fillOpacity: 0.15 
     }).addTo(map);
 
-    // Sync input box interfaces automatically on viewport start
     document.getElementById('cmdLat').value = fenceLat;
     document.getElementById('cmdLon').value = fenceLon;
     document.getElementById('cmdRad').value = fenceRad;
@@ -169,9 +166,16 @@
         if(pID === 'mapPage') setTimeout(() => { map.invalidateSize(); }, 300);
     }
 
+    // FIXED: Formatted comparison logic precisely handles string comparison against '1234'
     function checkAuth() {
-        const isAuth = document.getElementById('adminPin').value === (localStorage.getItem('navPin') || '1234');
-        document.getElementById('syncBtn').disabled = !isAuth;
+        const enteredPin = document.getElementById('adminPin').value;
+        const savedPin = localStorage.getItem('navPin') || '1234';
+        
+        if (enteredPin === savedPin) {
+            document.getElementById('syncBtn').disabled = false;
+        } else {
+            document.getElementById('syncBtn').disabled = true;
+        }
     }
 
     function syncVisuals(lat, lon, rad, buf) {
@@ -183,47 +187,51 @@
         localStorage.setItem('fBuf', buf);
     }
 
-    // --- REALTIME BACKEND EVENT DRIVERS ---
     function initializeFirebaseListeners() {
-        // 1. Continuous Telemetry Stream Listener
+        // 1. Telemetry Listener with Safety Checks for null data
         db.ref('boat').on('value', (snapshot) => {
             const data = snapshot.val();
-            if (data) {
-                const cLat = data.latitude;
-                const cLon = data.longitude;
-                const statusMsg = String(data.status || "").toUpperCase();
-                const borderDist = data.distanceToBorder || 0.0;
+            let badge = document.getElementById('statusBadge');
+            let sosBtn = document.getElementById('sosNavBtn');
+            
+            if (!data) {
+                badge.innerText = "LINK: AWAITING DATA";
+                return;
+            }
 
-                if (cLat !== 0 && cLon !== 0) {
-                    lastLat = cLat; lastLon = cLon;
-                    boatIcon.setLatLng([lastLat, lastLon]);
-                    boatPath.addLatLng([lastLat, lastLon]);
-                    document.getElementById('boatCoords').innerText = `${lastLat.toFixed(6)}, ${lastLon.toFixed(6)}`;
-                }
-                
-                document.getElementById('syncTime').innerText = `DIST TO EDGE: ${borderDist.toFixed(1)} m`;
-                
-                let badge = document.getElementById('statusBadge'), sosBtn = document.getElementById('sosNavBtn');
-                
-                if (statusMsg.includes("SOS") || statusMsg.includes("ALERT") || data.isAlertActive) {
-                    badge.innerText = `ALARM: ${statusMsg}`; 
-                    badge.className = 'hud-tag danger-pulse';
-                    sosBtn.className = 'nav-btn danger-pulse';
-                    boatIcon.setStyle({fillColor: '#ff0000'}); 
-                } else {
-                    badge.innerText = `LINK: SECURE / ${statusMsg}`; 
-                    badge.className = 'hud-tag';
-                    sosBtn.className = 'nav-btn';
-                    boatIcon.setStyle({fillColor: '#007bff'});
-                }
+            const cLat = parseFloat(data.latitude);
+            const cLon = parseFloat(data.longitude);
+            const statusMsg = String(data.status || "WAITING").toUpperCase();
+            const borderDist = parseFloat(data.distanceToBorder || 0.0);
+
+            if (!isNaN(cLat) && !isNaN(cLon) && cLat !== 0 && cLon !== 0) {
+                lastLat = cLat; lastLon = cLon;
+                boatIcon.setLatLng([lastLat, lastLon]);
+                boatPath.addLatLng([lastLat, lastLon]);
+                document.getElementById('boatCoords').innerText = `${lastLat.toFixed(6)}, ${lastLon.toFixed(6)}`;
+                map.panTo([lastLat, lastLon]);
+            }
+            
+            document.getElementById('syncTime').innerText = `DIST TO EDGE: ${borderDist.toFixed(1)} m`;
+            
+            if (statusMsg.includes("SOS") || statusMsg.includes("ALERT") || data.isAlertActive === true) {
+                badge.innerText = `ALARM: ${statusMsg}`; 
+                badge.className = 'hud-tag danger-pulse';
+                sosBtn.className = 'nav-btn danger-pulse';
+                boatIcon.setStyle({fillColor: '#ff0000'}); 
+            } else {
+                badge.innerText = `LINK: SECURE / ${statusMsg}`; 
+                badge.className = 'hud-tag';
+                sosBtn.className = 'nav-btn';
+                boatIcon.setStyle({fillColor: '#007bff'});
             }
         });
 
-        // 2. Persistent Boundary Sync Listener (Fires if database parameters change elsewhere)
+        // 2. Preferences Listener
         db.ref('preferences').on('value', (snapshot) => {
             const prefs = snapshot.val();
-            if (prefs) {
-                syncVisuals(prefs.lat, prefs.lon, prefs.rad, prefs.buf);
+            if (prefs && prefs.lat && prefs.lon) {
+                syncVisuals(parseFloat(prefs.lat), parseFloat(prefs.lon), parseFloat(prefs.rad), parseFloat(prefs.buf));
                 document.getElementById('cmdLat').value = prefs.lat;
                 document.getElementById('cmdLon').value = prefs.lon;
                 document.getElementById('cmdRad').value = prefs.rad;
@@ -232,19 +240,18 @@
         });
     }
 
-    // --- DATA BROADCAST PIPELINE ACTIONS ---
     function updateGeofence() {
         const lat = parseFloat(document.getElementById('cmdLat').value);
         const lon = parseFloat(document.getElementById('cmdLon').value);
         const rad = parseFloat(document.getElementById('cmdRad').value);
         const buf = parseFloat(document.getElementById('cmdBuf').value);
         
+        if (isNaN(lat) || isNaN(lon) || isNaN(rad)) return alert("Please enter valid parameters.");
+        
         syncVisuals(lat, lon, rad, buf);
 
-        // Commit structural updates to database tracking endpoints
         db.ref('preferences').set({ lat: lat, lon: lon, rad: rad, buf: buf });
 
-        // Build command payload to relay down-link to the hardware nodes via LoRa gateway
         const commandString = `SET:${lat},${lon},${rad},${buf}`;
         db.ref('config/syncCommand').set(commandString).then(() => {
             alert("BOUNDARY DISPATCHED TO GATEWAY.");
@@ -252,16 +259,35 @@
     }
 
     function acknowledgeSOS() {
-        if(document.getElementById('adminPin').value !== (localStorage.getItem('navPin') || '1234')) return alert("Auth Required.");
+        const enteredPin = document.getElementById('adminPin').value;
+        const savedPin = localStorage.getItem('navPin') || '1234';
+        if(enteredPin !== savedPin) return alert("Auth Required. Enter PIN.");
         
         db.ref('config/syncCommand').set("ACK_SOS").then(() => {
             alert("RESCUE ACK COMMAND DISPATCHED.");
         });
     }
 
+    // DEBUG FUNCTION: Instantly populates an empty Firebase tree to unlock the frontend map for testing
+    function injectDemoData() {
+        db.ref('boat').set({
+            latitude: 23.131610,
+            longitude: 88.547350,
+            status: "SAFE",
+            distanceToBorder: 45.5,
+            isAlertActive: false
+        });
+        db.ref('preferences').set({
+            lat: 23.131610,
+            lon: 88.547350,
+            rad: 50,
+            buf: 10
+        });
+        alert("Test frames injected! Go to 'Surveillance' tab to check the map view.");
+    }
+
     function clearPath() { boatPath.setLatLngs([]); alert("MAP PURGED."); }
 
-    // --- LIFECYCLE INITIALIZER SEQUENCE ---
     window.addEventListener('DOMContentLoaded', () => {
         initializeFirebaseListeners();
     });
