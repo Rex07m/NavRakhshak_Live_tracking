@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&family=Syncopate:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght=300;500;700&family=Syncopate:wght=400;700&display=swap');
 
         :root {
             --bg-deep: #f0f2f5;
@@ -93,7 +93,7 @@
         <div class="pos-overlay">
             <div style="font-size: 10px; opacity: 0.6; margin-bottom: 5px; font-weight: 700;">TELEMETRY [LAT, LON]</div>
             <div id="boatCoords">CONNECTING...</div>
-            <div id="syncTime" style="font-size: 10px; opacity: 0.6; margin-top: 5px;">SYNC: --:--:--</div>
+            <div id="syncTime" style="font-size: 10px; opacity: 0.6; margin-top: 5px;">DIST TO EDGE: -- m</div>
         </div>
 
         <section id="adminPage" class="page">
@@ -120,12 +120,22 @@
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
 <script>
-    const chID = "3300600", rKey = "M8RQ5ECSRWHF5ZRE", tbID = "56620", tbKey = "6H22BCX9X5LZ8II6";
+    // --- FIREBASE WEB APPLICATION INITIALIZATION CONFIGURATION ---
+    const firebaseConfig = {
+        databaseURL: "https://navrakhshak-web-default-rtdb.firebaseio.com"
+    };
     
-    // --- LOAD SAVED DATA IMMEDIATELY ---
-    let fenceLat = parseFloat(localStorage.getItem('fLat')) || 23.13161;
-    let fenceLon = parseFloat(localStorage.getItem('fLon')) || 88.54735;
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // --- RETAINED REGIONAL CACHE STRUCTURE ---
+    let fenceLat = parseFloat(localStorage.getItem('fLat')) || 23.131654;
+    let fenceLon = parseFloat(localStorage.getItem('fLon')) || 88.547243;
     let fenceRad = parseFloat(localStorage.getItem('fRad')) || 50;
 
     var map = L.map('map', {zoomControl: false, attributionControl: false}).setView([fenceLat, fenceLon], 18);
@@ -138,7 +148,6 @@
     var boatPath = L.polyline([], {color: '#d4ff00', weight: 4, opacity: 0.8}).addTo(map);
     var boatIcon = L.circleMarker([fenceLat, fenceLon], { radius: 10, color: '#fff', fillColor: '#007bff', fillOpacity: 1, weight: 3 }).addTo(map);
     
-    // Initialize Visual Fence with no-delay cached values
     var visualFence = L.circle([fenceLat, fenceLon], { 
         radius: fenceRad, 
         color: 'red', 
@@ -146,10 +155,11 @@
         fillOpacity: 0.15 
     }).addTo(map);
 
-    // Sync input boxes with saved data
+    // Sync input box interfaces automatically on viewport start
     document.getElementById('cmdLat').value = fenceLat;
     document.getElementById('cmdLon').value = fenceLon;
     document.getElementById('cmdRad').value = fenceRad;
+    document.getElementById('cmdBuf').value = parseFloat(localStorage.getItem('fBuf')) || 10;
 
     function showPage(pID, btn) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -164,98 +174,98 @@
         document.getElementById('syncBtn').disabled = !isAuth;
     }
 
-    // Refresh Local visuals and cache
-    function syncVisuals(lat, lon, rad) {
+    function syncVisuals(lat, lon, rad, buf) {
         visualFence.setLatLng([lat, lon]);
         visualFence.setRadius(rad);
         localStorage.setItem('fLat', lat);
         localStorage.setItem('fLon', lon);
         localStorage.setItem('fRad', rad);
-        console.log("Mobile Cache Synced:", rad);
+        localStorage.setItem('fBuf', buf);
     }
 
-    async function fetchLastSettings() {
-        try {
-            // Force bypass cache for mobile
-            const res = await fetch(`https://api.thingspeak.com/talkbacks/${tbID}/commands.json?api_key=${tbKey}&_=${Date.now()}`);
-            const commands = await res.json();
-            const lastSetCmd = commands.reverse().find(c => c.command_string.startsWith("SET:"));
-            
-            if (lastSetCmd) {
-                const parts = lastSetCmd.command_string.replace("SET:", "").split(",");
-                const lat = parseFloat(parts[0]), lon = parseFloat(parts[1]), rad = parseFloat(parts[2]);
-                if(!isNaN(lat)) syncVisuals(lat, lon, rad);
-            }
-        } catch (e) { console.error("Cloud fetch failed", e); }
-    }
+    // --- REALTIME BACKEND EVENT DRIVERS ---
+    function initializeFirebaseListeners() {
+        // 1. Continuous Telemetry Stream Listener
+        db.ref('boat').on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                const cLat = data.latitude;
+                const cLon = data.longitude;
+                const statusMsg = String(data.status || "").toUpperCase();
+                const borderDist = data.distanceToBorder || 0.0;
 
-    async function updateData() {
-        try {
-            const res = await fetch(`https://api.thingspeak.com/channels/${chID}/feeds.json?api_key=${rKey}&results=1&_=${Date.now()}`);
-            const data = await res.json();
-            const feed = data.feeds[0];
-
-            if (feed) {
-                const cLat = parseFloat(feed.field1), cLon = parseFloat(feed.field2);
-                if (!isNaN(cLat)) {
+                if (cLat !== 0 && cLon !== 0) {
                     lastLat = cLat; lastLon = cLon;
                     boatIcon.setLatLng([lastLat, lastLon]);
                     boatPath.addLatLng([lastLat, lastLon]);
                     document.getElementById('boatCoords').innerText = `${lastLat.toFixed(6)}, ${lastLon.toFixed(6)}`;
                 }
-                document.getElementById('syncTime').innerText = `SYNC: ${new Date(feed.created_at).toLocaleTimeString()}`;
+                
+                document.getElementById('syncTime').innerText = `DIST TO EDGE: ${borderDist.toFixed(1)} m`;
                 
                 let badge = document.getElementById('statusBadge'), sosBtn = document.getElementById('sosNavBtn');
-                const statusMsg = String(feed.field3 || "").toUpperCase();
-                if (statusMsg.includes("SOS") || statusMsg.includes("ALERT")) {
-                    badge.innerText = "ALARM: DISTRESS SIGNAL"; 
-                    badge.classList.add('danger-pulse');
-                    sosBtn.classList.add('danger-pulse');
+                
+                if (statusMsg.includes("SOS") || statusMsg.includes("ALERT") || data.isAlertActive) {
+                    badge.innerText = `ALARM: ${statusMsg}`; 
+                    badge.className = 'hud-tag danger-pulse';
+                    sosBtn.className = 'nav-btn danger-pulse';
                     boatIcon.setStyle({fillColor: '#ff0000'}); 
                 } else {
-                    badge.innerText = "LINK: SECURE / LIVE"; 
-                    badge.classList.remove('danger-pulse');
-                    sosBtn.classList.remove('danger-pulse');
+                    badge.innerText = `LINK: SECURE / ${statusMsg}`; 
+                    badge.className = 'hud-tag';
+                    sosBtn.className = 'nav-btn';
                     boatIcon.setStyle({fillColor: '#007bff'});
                 }
             }
-        } catch (e) { console.error("Telemetry failed", e); }
+        });
+
+        // 2. Persistent Boundary Sync Listener (Fires if database parameters change elsewhere)
+        db.ref('preferences').on('value', (snapshot) => {
+            const prefs = snapshot.val();
+            if (prefs) {
+                syncVisuals(prefs.lat, prefs.lon, prefs.rad, prefs.buf);
+                document.getElementById('cmdLat').value = prefs.lat;
+                document.getElementById('cmdLon').value = prefs.lon;
+                document.getElementById('cmdRad').value = prefs.rad;
+                document.getElementById('cmdBuf').value = prefs.buf;
+            }
+        });
     }
 
-    async function updateGeofence() {
-        const lat = document.getElementById('cmdLat').value, lon = document.getElementById('cmdLon').value;
-        const rad = document.getElementById('cmdRad').value, buf = document.getElementById('cmdBuf').value;
+    // --- DATA BROADCAST PIPELINE ACTIONS ---
+    function updateGeofence() {
+        const lat = parseFloat(document.getElementById('cmdLat').value);
+        const lon = parseFloat(document.getElementById('cmdLon').value);
+        const rad = parseFloat(document.getElementById('cmdRad').value);
+        const buf = parseFloat(document.getElementById('cmdBuf').value);
         
-        syncVisuals(parseFloat(lat), parseFloat(lon), parseFloat(rad));
+        syncVisuals(lat, lon, rad, buf);
 
-        const command = `SET:${lat},${lon},${rad},${buf}`;
-        const params = new URLSearchParams();
-        params.append('api_key', tbKey);
-        params.append('command_string', command);
-        
-        const res = await fetch(`https://api.thingspeak.com/talkbacks/${tbID}/commands.json`, { method: 'POST', body: params });
-        if(res.ok) alert("BOUNDARY DISPATCHED.");
+        // Commit structural updates to database tracking endpoints
+        db.ref('preferences').set({ lat: lat, lon: lon, rad: rad, buf: buf });
+
+        // Build command payload to relay down-link to the hardware nodes via LoRa gateway
+        const commandString = `SET:${lat},${lon},${rad},${buf}`;
+        db.ref('config/syncCommand').set(commandString).then(() => {
+            alert("BOUNDARY DISPATCHED TO GATEWAY.");
+        });
     }
 
-    async function acknowledgeSOS() {
+    function acknowledgeSOS() {
         if(document.getElementById('adminPin').value !== (localStorage.getItem('navPin') || '1234')) return alert("Auth Required.");
-        const params = new URLSearchParams();
-        params.append('api_key', tbKey);
-        params.append('command_string', "ACK_SOS");
-        const res = await fetch(`https://api.thingspeak.com/talkbacks/${tbID}/commands.json`, { method: 'POST', body: params });
-        if(res.ok) alert("RESCUE ACKNOWLEDGED.");
+        
+        db.ref('config/syncCommand').set("ACK_SOS").then(() => {
+            alert("RESCUE ACK COMMAND DISPATCHED.");
+        });
     }
 
     function clearPath() { boatPath.setLatLngs([]); alert("MAP PURGED."); }
 
-    // --- MOBILE STARTUP SEQUENCE ---
+    // --- LIFECYCLE INITIALIZER SEQUENCE ---
     window.addEventListener('DOMContentLoaded', () => {
-        fetchLastSettings();
-        updateData();
-        setInterval(updateData, 10000); 
+        initializeFirebaseListeners();
     });
 
-    // Fix for mobile orientation changes
     window.addEventListener('resize', () => { map.invalidateSize(); });
 </script>
 </body>
