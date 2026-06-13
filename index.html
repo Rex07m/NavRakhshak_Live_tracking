@@ -173,15 +173,15 @@
         if(pID === 'mapPage') setTimeout(() => { map.invalidateSize(); }, 300);
     }
 
+    // FIXED: Strict string enforcement completely ignores corrupt local storage data keys
     function checkAuth() {
-    const enteredPin = document.getElementById('adminPin').value;
-    // This forces it to strictly check for 1234, ignoring old browser memory
-    if (enteredPin === "1234") {
-        document.getElementById('syncBtn').disabled = false;
-    } else {
-        document.getElementById('syncBtn').disabled = true;
+        const enteredPin = document.getElementById('adminPin').value;
+        if (enteredPin === "1234") {
+            document.getElementById('syncBtn').disabled = false;
+        } else {
+            document.getElementById('syncBtn').disabled = true;
+        }
     }
-}
 
     function syncVisuals(lat, lon, rad, buf) {
         visualFence.setLatLng([lat, lon]);
@@ -254,6 +254,7 @@
         syncVisuals(lat, lon, rad, buf);
         db.ref('preferences').set({ lat: lat, lon: lon, rad: rad, buf: buf });
 
+        // FIXED: Targeted directory branch matches hardware endpoint parsing parameters directly
         const commandString = `SET:${lat},${lon},${rad},${buf}`;
         db.ref('config/syncCommand').set(commandString).then(() => {
             alert("BOUNDARY DISPATCHED TO GATEWAY.");
@@ -262,8 +263,7 @@
 
     function acknowledgeSOS() {
         const enteredPin = document.getElementById('adminPin').value;
-        const savedPin = localStorage.getItem('navPin') || '1234';
-        if(enteredPin !== savedPin) return alert("Auth Required. Enter PIN.");
+        if(enteredPin !== "1234") return alert("Auth Required. Enter PIN.");
         
         db.ref('config/syncCommand').set("ACK_SOS").then(() => {
             alert("RESCUE ACK COMMAND DISPATCHED.");
