@@ -174,10 +174,14 @@
     }
 
     function checkAuth() {
-        const enteredPin = document.getElementById('adminPin').value;
-        const savedPin = localStorage.getItem('navPin') || '1234';
-        document.getElementById('syncBtn').disabled = (enteredPin !== savedPin);
+    const enteredPin = document.getElementById('adminPin').value;
+    // This forces it to strictly check for 1234, ignoring old browser memory
+    if (enteredPin === "1234") {
+        document.getElementById('syncBtn').disabled = false;
+    } else {
+        document.getElementById('syncBtn').disabled = true;
     }
+}
 
     function syncVisuals(lat, lon, rad, buf) {
         visualFence.setLatLng([lat, lon]);
