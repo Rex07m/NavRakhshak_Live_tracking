@@ -9,7 +9,7 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=400;600;700&family=JetBrains+Mono:wght=500;700&display=swap');
 
-        /* --- GLOBAL LIGHT THEME SCHEME DESIGN SYSTEM VARIABLES --- */
+        /* --- TACTICAL MARITIME DESIGN SYSTEM VARIABLES --- */
         :root {
             --brand-blue: #012b5d;
             --brand-orange: #f25a22;
@@ -17,188 +17,183 @@
             --font-main: 'Plus Jakarta Sans', sans-serif;
             --font-mono: 'JetBrains Mono', monospace;
 
-            /* Light Theme Specific Architecture Rules */
-            --bg-dark: #f4f7f6;
-            --panel-bg: rgba(255, 255, 255, 0.95);
-            --border-glow: rgba(1, 43, 93, 0.15);
-            --text-main: #0c1524;
-            --text-muted: #627285;
-            --input-bg: #ffffff;
-            --input-border: rgba(1, 43, 93, 0.12);
-            --card-sub-bg: rgba(1, 43, 93, 0.04);
-            --grid-line-color: rgba(1, 43, 93, 0.05);
-            --aside-bg: #ffffff;
-            --metric-box-bg: rgba(1, 43, 93, 0.06);
+            /* Glassmorphism Theme Layer Specs */
+            --glass-bg: rgba(255, 255, 255, 0.08);
+            --glass-border: rgba(255, 255, 255, 0.15);
+            --panel-header: rgba(1, 43, 93, 0.2);
+            --text-main: #ffffff;
+            --text-muted: #cbd5e1;
+            --bg-canvas: #040d21;
         }
 
         body, html { 
             margin: 0; padding: 0; height: 100%; width: 100%; 
-            font-family: var(--font-main); background: var(--bg-dark); 
+            font-family: var(--font-main); background: var(--bg-canvas); 
             color: var(--text-main); overflow: hidden; 
         }
 
         .app-container { display: flex; height: 100vh; width: 100vw; flex-direction: column; }
         @media (min-width: 992px) { .app-container { flex-direction: row; } }
 
-        /* Left Navigation Sidebar with Embedded Metrics */
+        /* --- NAVIGATION SIDEBAR (FULLY RESPONSIVE) --- */
         aside {
-            width: 100%; background: var(--aside-bg); border-bottom: 1px solid rgba(1, 43, 93, 0.08); 
-            display: flex; flex-direction: column; padding: 16px; z-index: 2000; box-sizing: border-box; gap: 20px;
+            width: 100%; background: rgba(1, 12, 39, 0.6); backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border); 
+            display: flex; flex-direction: column; padding: 16px; z-index: 2000; box-sizing: border-box; gap: 15px;
         }
         @media (min-width: 992px) { 
             aside { 
-                width: 280px; height: 100vh; border-right: 1px solid rgba(1, 43, 93, 0.08); border-bottom: none;
-                padding: 35px 20px; justify-content: flex-start; gap: 25px;
+                width: 280px; height: 100vh; border-right: 1px solid var(--glass-border); border-bottom: none;
+                padding: 35px 20px; justify-content: flex-start; gap: 30px;
             } 
         }
 
         .brand { text-align: left; cursor: pointer; display: flex; align-items: center; gap: 12px; }
-        .brand-logo-img { width: 44px; height: 44px; object-fit: contain; }
+        .brand-logo-img { width: 42px; height: 42px; object-fit: contain; filter: drop-shadow(0 0 8px rgba(255,255,255,0.2)); }
         .brand-text-group { display: flex; flex-direction: column; }
-        .brand-logo { font-size: 19px; font-weight: 700; letter-spacing: 1.5px; color: var(--brand-blue); line-height: 1.2; }
-        .brand-sub { font-size: 8.5px; color: var(--brand-orange); letter-spacing: 2px; text-transform: uppercase; font-weight: 700; margin-top: 1px; }
+        .brand-logo { font-size: 19px; font-weight: 700; letter-spacing: 1.5px; color: #ffffff; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+        .brand-sub { font-size: 9px; color: var(--brand-orange); letter-spacing: 2px; text-transform: uppercase; font-weight: 700; }
 
-        .sidebar-metrics { background: var(--metric-box-bg); border: 1px solid var(--border-glow); border-radius: 10px; padding: 14px; font-family: var(--font-mono); font-size: 11px; }
+        .sidebar-metrics { background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border); border-radius: 10px; padding: 12px; font-family: var(--font-mono); font-size: 11px; }
         .metric-line { display: flex; justify-content: space-between; margin-bottom: 6px; }
         .metric-line:last-child { margin-bottom: 0; }
 
-        .nav-list { display: flex; flex-direction: row; gap: 6px; width: 100%; overflow-x: auto; }
-        @media (min-width: 992px) { .nav-list { flex-direction: column; gap: 12px; overflow-x: visible; } }
+        .nav-list { display: flex; flex-direction: row; gap: 6px; width: 100%; overflow-x: auto; padding-bottom: 4px; }
+        @media (min-width: 992px) { .nav-list { flex-direction: column; gap: 12px; overflow-x: visible; padding-bottom: 0; } }
 
         .nav-item {
-            background: rgba(0, 0, 0, 0.01); border: 1px solid var(--input-border); 
+            background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); 
             color: var(--text-muted); font-size: 11px; font-weight: 600; text-transform: uppercase;
-            letter-spacing: 1px; padding: 14px; border-radius: 8px; cursor: pointer; 
-            transition: all 0.2s; display: flex; align-items: center; gap: 12px; box-sizing: border-box; width: 100%;
+            letter-spacing: 1px; padding: 12px 14px; border-radius: 8px; cursor: pointer; 
+            transition: all 0.2s ease; display: flex; align-items: center; gap: 12px; box-sizing: border-box; width: 100%;
         }
-        .nav-item:hover { background: rgba(1, 43, 93, 0.05); color: var(--text-main); border-color: var(--brand-orange); }
+        .nav-item:hover { background: rgba(255, 255, 255, 0.08); color: #fff; border-color: rgba(255,255,255,0.2); }
         .nav-item.active { 
-            background: linear-gradient(135deg, var(--brand-blue), #01183d); color: #fff; border-color: var(--brand-orange);
-            box-shadow: 0 4px 15px rgba(1, 43, 93, 0.25);
+            background: linear-gradient(135deg, rgba(242, 90, 34, 0.2), rgba(1, 43, 93, 0.4)); 
+            color: #fff; border-color: var(--brand-orange);
+            box-shadow: 0 4px 15px rgba(242, 90, 34, 0.15);
         }
 
-        .main-workspace { flex-grow: 1; position: relative; height: 100%; background: var(--bg-dark); }
-        #map { height: 100%; width: 100%; position: absolute; z-index: 1; transition: opacity 0.3s; }
+        .main-workspace { flex-grow: 1; position: relative; height: 100%; background: var(--bg-canvas); }
+        #map { height: 100%; width: 100%; position: absolute; z-index: 1; }
 
-        /* TITLE SPLASH PAGE ARCHITECTURE */
+        /* --- TITLE SCREEN (TACTICAL BLENDED GLASS LAYOUT) --- */
         #titlePage {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: #ffffff;
-            z-index: 9999; display: flex; flex-direction: column; align-items: center;
-            justify-content: center; text-align: center; transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-            overflow: hidden;
+            background: #010612; z-index: 9999; display: flex; flex-direction: column; 
+            align-items: center; justify-content: center; text-align: center; 
+            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1); overflow: hidden;
         }
         #titlePage.hidden { transform: translateY(-100vh); opacity: 0; pointer-events: none; }
         
-        /* BACKGROUND WORLD MAP VIDEO ASSET LAYER */
         .title-bg-video {
-            position: absolute; top: 50%; left: 50%;
-            min-width: 100%; min-height: 100%;
-            width: auto; height: auto;
-            transform: translate(-50%, -50%);
-            object-fit: cover; z-index: 1; opacity: 0.65;
-            pointer-events: none;
+            position: absolute; top: 50%; left: 50%; min-width: 100%; min-height: 100%;
+            width: auto; height: auto; transform: translate(-50%, -50%);
+            object-fit: cover; z-index: 1; opacity: 0.55; pointer-events: none;
         }
 
-        .title-container { position: relative; z-index: 5; max-width: 700px; padding: 35px; display: flex; flex-direction: column; align-items: center; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(1, 43, 93, 0.15); border-radius: 20px; box-shadow: 0 20px 50px rgba(1, 43, 93, 0.1); }
+        /* Frosted Glass Container to Blend with Video Backing */
+        .title-container { 
+            position: relative; z-index: 5; width: 90%; max-width: 520px; 
+            padding: 40px 30px; display: flex; flex-direction: column; align-items: center; 
+            background: rgba(4, 13, 33, 0.55); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 24px; 
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4); 
+        }
         
         .splash-logo-img {
-            width: 200px; height: 200px; object-fit: contain; margin-bottom: 20px;
-            filter: drop-shadow(0 10px 20px rgba(1, 43, 93, 0.15));
+            width: 180px; height: 180px; object-fit: contain; margin-bottom: 25px;
+            filter: drop-shadow(0 4px 15px rgba(255, 255, 255, 0.15));
             animation: tacticalPulse 4s ease-in-out infinite;
         }
         @keyframes tacticalPulse {
-            0% { transform: translateY(0px) scale(1); }
-            50% { transform: translateY(-8px) scale(1.02); }
-            100% { transform: translateY(0px) scale(1); }
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-6px); }
         }
 
-        .title-logo { font-size: 52px; font-weight: 700; letter-spacing: 8px; color: var(--brand-blue); margin-bottom: 8px; }
-        .title-sub { font-size: 13px; color: var(--brand-orange); letter-spacing: 5px; text-transform: uppercase; font-weight: 700; margin-bottom: 30px; }
+        .title-logo { font-size: 38px; font-weight: 700; letter-spacing: 6px; color: #ffffff; margin-bottom: 6px; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+        @media(min-width: 768px) { .title-logo { font-size: 46px; } }
+        .title-sub { font-size: 11px; color: var(--brand-orange); window-spacing: 4px; letter-spacing: 4px; text-transform: uppercase; font-weight: 700; margin-bottom: 30px; text-shadow: 0 1px 3px rgba(0,0,0,0.5); }
         
-        /* SEARCH/SCANNING RADAR CONTAINER */
         .search-anim-container {
-            position: relative; width: 100%; max-width: 320px; height: 48px; 
-            margin-bottom: 35px; background: rgba(1, 43, 93, 0.04); 
-            border: 1px solid rgba(242, 90, 34, 0.25); border-radius: 24px;
+            position: relative; width: 100%; max-width: 290px; height: 44px; 
+            margin-bottom: 35px; background: rgba(255, 255, 255, 0.05); 
+            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 22px;
             display: flex; align-items: center; padding: 0 20px; box-sizing: border-box;
             overflow: hidden; gap: 12px;
         }
-        .search-icon-spin {
-            font-size: 16px; color: var(--brand-orange);
-            animation: searchPulse 1.5s infinite ease-in-out;
-        }
-        .search-anim-text {
-            font-family: var(--font-mono); font-size: 11px; letter-spacing: 1px;
-            text-transform: uppercase; color: var(--brand-blue); font-weight: 600;
-        }
+        .search-icon-spin { font-size: 14px; color: var(--brand-orange); animation: searchPulse 1.5s infinite ease-in-out; }
+        .search-anim-text { font-family: var(--font-mono); font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: #ffffff; }
         .search-anim-container::after {
             content: ''; position: absolute; top: 0; left: -50%; width: 30%; height: 100%;
-            background: linear-gradient(to right, transparent, rgba(242, 90, 34, 0.2), transparent);
-            transform: skewX(-25deg);
-            animation: scanningSweep 2.5s infinite linear;
+            background: linear-gradient(to right, transparent, rgba(252, 90, 34, 0.2), transparent);
+            transform: skewX(-25deg); animation: scanningSweep 2.5s infinite linear;
         }
-        @keyframes searchPulse {
-            0%, 100% { transform: scale(1); opacity: 0.8; }
-            50% { transform: scale(1.2); opacity: 1; }
-        }
-        @keyframes scanningSweep {
-            0% { left: -40%; }
-            100% { left: 140%; }
-        }
+        @keyframes searchPulse { 0%, 100% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.15); opacity: 1; } }
+        @keyframes scanningSweep { 0% { left: -40%; } 100% { left: 140%; } }
 
         .btn-enter {
-            background: #ffffff; border: 2px solid var(--brand-orange); color: var(--brand-blue);
-            padding: 16px 50px; font-size: 13px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase;
-            border-radius: 30px; cursor: pointer; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            box-shadow: 0 4px 15px rgba(242,90,34,0.15); display: flex; align-items: center; gap: 12px;
+            background: rgba(242, 90, 34, 0.1); border: 1px solid var(--brand-orange); color: #ffffff;
+            padding: 15px 45px; font-size: 12px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+            border-radius: 30px; cursor: pointer; transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(242,90,34,0.2); display: flex; align-items: center; gap: 10px;
         }
-        .btn-enter:hover { background: var(--brand-orange); color: #fff; box-shadow: 0 10px 25px rgba(242,90,34,0.35); transform: scale(1.04); }
+        .btn-enter:hover { background: var(--brand-orange); box-shadow: 0 8px 25px rgba(242,90,34,0.45); transform: scale(1.03); }
 
-        /* CONTROL SLIDING HUD VIEWS ENGINE */
+        /* --- WORKSPACE OVERLAY PANELS (HUD GLASS) --- */
         .hud-panel { 
             position: absolute; top: 15px; left: 15px; bottom: 15px; right: 15px;
-            background: var(--panel-bg); backdrop-filter: blur(25px);
-            border: 1px solid var(--border-glow); border-radius: 14px; z-index: 1000;
-            padding: 30px; box-sizing: border-box; display: none; flex-direction: column;
-            pointer-events: auto; overflow-y: auto; box-shadow: 0 15px 40px rgba(1, 43, 93, 0.08);
+            background: rgba(4, 13, 33, 0.75); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border); border-radius: 16px; z-index: 1000;
+            padding: 25px; box-sizing: border-box; display: none; flex-direction: column;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5); pointer-events: auto; overflow-y: auto;
         }
         
         #surveillancePage.active { display: flex; background: transparent; border: none; backdrop-filter: none; box-shadow: none; pointer-events: none; }
         #commandPage.active, #rescuePage.active, #weatherPage.active { display: flex; }
 
-        .panel-title { font-size: 18px; font-weight: 700; letter-spacing: 1px; margin-bottom: 25px; color: var(--brand-blue); text-transform: uppercase; border-bottom: 1px solid var(--input-border); padding-bottom: 12px; }
-        .form-row { display: flex; gap: 15px; margin-bottom: 15px; }
+        .panel-title { font-size: 16px; font-weight: 700; letter-spacing: 1px; margin-bottom: 20px; color: #ffffff; text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
+        .form-row { display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; }
+        @media(min-width: 576px) { .form-row { flex-direction: row; gap: 15px; } }
+        
         label { display: block; font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; font-weight: 600; }
         input { 
-            width: 100%; background: var(--input-bg); border: 1px solid var(--input-border); 
-            padding: 14px; color: var(--text-main); border-radius: 8px; font-family: var(--font-mono); font-size: 13px; box-sizing: border-box;
+            width: 100%; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.1); 
+            padding: 12px 14px; color: #fff; border-radius: 8px; font-family: var(--font-mono); font-size: 13px; box-sizing: border-box;
         }
-        input:focus { border-color: var(--brand-orange); outline: none; box-shadow: 0 0 10px rgba(242,90,34,0.08); }
+        input:focus { border-color: var(--brand-orange); outline: none; background: rgba(0, 0, 0, 0.45); }
 
         .btn-dispatch { 
-            width: 100%; background: linear-gradient(135deg, var(--brand-blue), #01183d); color: #fff; border: 1px solid var(--brand-orange); 
-            padding: 16px; font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; border-radius: 8px; cursor: pointer; transition: all 0.2s;
+            width: 100%; background: linear-gradient(135deg, var(--brand-blue), #011430); color: #fff; border: 1px solid var(--brand-orange); 
+            padding: 14px; font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; border-radius: 8px; cursor: pointer; transition: all 0.2s;
         }
-        .btn-dispatch:disabled { background: #e4e8eb; border-color: rgba(0,0,0,0.05); color: #a1b0be; cursor: not-allowed; }
-        .btn-danger { width: 100%; background: rgba(255, 0, 85, 0.05); color: var(--neon-danger); border: 1px solid var(--neon-danger); padding: 14px; font-weight: 600; font-size: 12px; text-transform: uppercase; border-radius: 8px; cursor: pointer; margin-top: 15px; }
+        .btn-dispatch:disabled { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.05); color: rgba(255,255,255,0.2); cursor: not-allowed; }
+        .btn-danger { width: 100%; background: rgba(255, 0, 85, 0.1); color: #ff3377; border: 1px solid var(--neon-danger); padding: 14px; font-weight: 600; font-size: 12px; text-transform: uppercase; border-radius: 8px; cursor: pointer; margin-top: 10px; }
         .btn-danger:hover { background: var(--neon-danger); color: #fff; }
-        .btn-mute { width: 100%; background: rgba(242, 90, 34, 0.05); color: var(--brand-orange); border: 1px solid var(--brand-orange); padding: 14px; font-weight: 600; font-size: 12px; text-transform: uppercase; border-radius: 8px; cursor: pointer; margin-top: 15px; }
-        .btn-mute:hover { background: var(--brand-orange); color: #fff; }
+        .btn-mute { width: 100%; background: rgba(255,255,255,0.05); color: #ffffff; border: 1px solid rgba(255,255,255,0.2); padding: 14px; font-weight: 600; font-size: 12px; text-transform: uppercase; border-radius: 8px; cursor: pointer; margin-top: 10px; }
+        .btn-mute:hover { background: rgba(255,255,255,0.15); }
 
-        .status-badge { position: absolute; top: 15px; right: 15px; background: var(--panel-bg); backdrop-filter: blur(10px); padding: 12px 20px; border-radius: 30px; font-size: 11px; font-weight: 700; z-index: 1010; border: 1px solid var(--border-glow); font-family: var(--font-mono); letter-spacing: 0.5px; color: var(--brand-blue); box-shadow: 0 4px 15px rgba(1, 43, 93, 0.06); }
-        .overlay-card { position: absolute; bottom: 15px; left: 15px; background: var(--panel-bg); backdrop-filter: blur(10px); padding: 18px; border-radius: 12px; z-index: 1010; border-left: 4px solid var(--brand-orange); width: calc(100% - 30px); max-width: 290px; color: var(--text-main); border-top: 1px solid var(--input-border); box-shadow: 0 10px 30px rgba(1, 43, 93, 0.06); }
+        /* Floating Cards Over Map */
+        .status-badge { position: absolute; top: 15px; right: 15px; background: rgba(4, 13, 33, 0.8); backdrop-filter: blur(10px); padding: 10px 16px; border-radius: 30px; font-size: 10px; font-weight: 700; z-index: 1010; border: 1px solid var(--glass-border); font-family: var(--font-mono); letter-spacing: 0.5px; color: #fff; }
+        .overlay-card { position: absolute; bottom: 20px; left: 15px; background: rgba(4, 13, 33, 0.85); backdrop-filter: blur(10px); padding: 16px; border-radius: 12px; z-index: 1010; border-left: 4px solid var(--brand-orange); border-top: 1px solid rgba(255,255,255,0.05); width: calc(100% - 30px); max-width: 280px; box-shadow: 0 10px 25px rgba(0,0,0,0.4); }
 
         .weather-display-box { max-width: 400px; }
-        .weather-val { font-size: 42px; font-weight: 700; margin-top: 5px; color: var(--brand-orange); font-family: var(--font-mono); }
-        .weather-sub-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; font-family: var(--font-mono); }
-        .sub-weather-box { background: var(--card-sub-bg); border: 1px solid var(--input-border); border-radius: 10px; padding: 15px; }
+        .weather-val { font-size: 38px; font-weight: 700; margin-top: 5px; color: var(--brand-orange); font-family: var(--font-mono); }
+        .weather-sub-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; font-family: var(--font-mono); }
+        .sub-weather-box { background: var(--card-sub-bg); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 12px; }
 
-        .pulse-alarm { background: var(--neon-danger) !important; color: #fff !important; animation: flash 1s infinite; border-color: #ff6699 !important; box-shadow: 0 4px 15px rgba(255,0,85,0.2); }
+        .pulse-alarm { background: var(--neon-danger) !important; color: #fff !important; animation: flash 1s infinite; border-color: #ff6699 !important; }
         @keyframes flash { 50% { opacity: 0.6; } }
 
+        /* --- MOBILE LAYOUT FINETUNING QUERY --- */
         @media (max-width: 991px) {
-            .hud-panel { top: 70px; bottom: 15px; left: 15px; right: 15px; }
+            aside { padding: 12px; gap: 10px; }
+            .brand-logo-img { width: 34px; height: 34px; }
+            .brand-logo { font-size: 16px; }
+            .sidebar-metrics { display: none; } /* Drops secondary metrics block to save mobile space */
+            .hud-panel { top: 125px; bottom: 20px; left: 12px; right: 12px; padding: 20px; }
+            .status-badge { top: auto; bottom: 130px; left: 15px; right: auto; }
+            .overlay-card { bottom: 15px; left: 15px; }
         }
     </style>
 </head>
@@ -235,7 +230,7 @@
 
         <div class="sidebar-metrics">
             <div class="metric-line"><span>Vessel Node:</span><span id="srvStatus" style="color:var(--brand-orange); font-weight: 700;">ACTIVE</span></div>
-            <div class="metric-line"><span>Cloud Pipe:</span><span style="color:#00aa50; font-weight: 700;">ONLINE</span></div>
+            <div class="metric-line"><span>Cloud Pipe:</span><span style="color:#00ff88; font-weight: 700;">ONLINE</span></div>
         </div>
 
         <nav class="nav-list">
@@ -253,7 +248,7 @@
 
         <div class="overlay-card" id="telemetryOverlay">
             <label style="font-size: 8px; color: var(--text-muted);">Vessel Tracking Position</label>
-            <div style="font-family: var(--font-mono); font-size: 14px; font-weight: 700; margin-bottom: 5px;" id="boatCoords">--.------, --.------</div>
+            <div style="font-family: var(--font-mono); font-size: 13px; font-weight: 700; margin-bottom: 3px;" id="boatCoords">--.------, --.------</div>
             <div style="font-family: var(--font-mono); font-size: 10px; color: var(--brand-orange);" id="syncTime">DIST TO EDGE: 0.0 m</div>
         </div>
 
@@ -261,28 +256,28 @@
 
         <section id="commandPage" class="hud-panel">
             <div class="panel-title">BOUNDARIES CONFIGURATION</div>
-            <div style="margin-bottom: 15px; max-width: 500px;">
+            <div style="margin-bottom: 12px; max-width: 500px;">
                 <label>Target Center Latitude / Longitude</label>
                 <div class="form-row">
                     <input type="number" id="cmdLat" step="0.000001">
                     <input type="number" id="cmdLon" step="0.000001">
                 </div>
             </div>
-            <div style="margin-bottom: 20px; max-width: 500px;">
+            <div style="margin-bottom: 18px; max-width: 500px;">
                 <label>Radius & Safety Buffer Bounds (meters)</label>
                 <div class="form-row">
                     <input type="number" id="cmdRad" placeholder="Radius">
                     <input type="number" id="cmdBuf" placeholder="Buffer">
                 </div>
             </div>
-            <div style="border-top:1px solid var(--input-border); padding-top:15px; margin-bottom:20px; max-width: 500px;">
+            <div style="border-top:1px solid rgba(255,255,255,0.1); padding-top:12px; margin-bottom:18px; max-width: 500px;">
                 <label>Security Authentication PIN</label>
                 <input type="password" id="adminPin" placeholder="Master PIN (1234)" maxlength="4" oninput="checkAuth()">
             </div>
-            <div style="max-width: 500px; display: flex; flex-direction: column; gap: 10px;">
+            <div style="max-width: 500px; display: flex; flex-direction: column; gap: 8px;">
                 <button id="syncBtn" class="btn-dispatch" onclick="updateGeofence()" disabled>Dispatch Boundary Vector</button>
                 <button class="btn-mute" onclick="triggerManualMute()"><i class="fa-solid fa-volume-xmark"></i> Mute Hardware Buzzers</button>
-                <button onclick="clearPath()" style="background:none; border:none; color:var(--neon-danger); font-size:10px; font-weight:700; margin-top:10px; cursor:pointer; text-align: left; width: fit-content;"><i class="fa-solid fa-trash"></i> Clear Map Route Trail</button>
+                <button onclick="clearPath()" style="background:none; border:none; color:var(--neon-danger); font-size:10px; font-weight:700; margin-top:5px; cursor:pointer; text-align: left; width: fit-content;"><i class="fa-solid fa-trash"></i> Clear Map Route Trail</button>
             </div>
         </section>
 
@@ -291,7 +286,7 @@
             <div style="max-width: 400px;">
                 <label>Emergency Override Authorization Code</label>
                 <input type="password" id="rescuePin" placeholder="Enter security PIN to clear alarms" maxlength="4">
-                <button class="btn-dispatch pulse-alarm" onclick="acknowledgeSOS()" style="margin-top:20px;">Broadcast Emergency Ack Command</button>
+                <button class="btn-dispatch pulse-alarm" onclick="acknowledgeSOS()" style="margin-top:15px;">Broadcast Emergency Ack Command</button>
             </div>
         </section>
 
@@ -300,16 +295,16 @@
             <div class="weather-display-box">
                 <label>Atmospheric core profile</label>
                 <div class="weather-val" id="weatherTemp">--°C</div>
-                <div style="font-size:12px; margin-top:6px; color:var(--text-muted);" id="weatherDesc">Processing geolocation matrix...</div>
+                <div style="font-size:12px; margin-top:4px; color:var(--text-muted);" id="weatherDesc">Processing geolocation matrix...</div>
                 
                 <div class="weather-sub-grid">
                     <div class="sub-weather-box">
                         <label>Wind Flow Profile</label>
-                        <div style="color:var(--text-main); font-weight:700; font-size: 16px; margin-top:4px;" id="weatherWind">-- km/h</div>
+                        <div style="color:#fff; font-weight:700; font-size: 15px; margin-top:4px;" id="weatherWind">-- km/h</div>
                     </div>
                     <div class="sub-weather-box">
                         <label>Storm Alert Index</label>
-                        <div style="color:var(--brand-orange); font-weight:700; font-size: 16px; margin-top:4px;" id="weatherStorm">NORMAL</div>
+                        <div style="color:var(--brand-orange); font-weight:700; font-size: 15px; margin-top:4px;" id="weatherStorm">NORMAL</div>
                     </div>
                 </div>
                 <button class="btn-danger" onclick="triggerManualWeatherAlert()" style="max-width: 100%;"><i class="fa-solid fa-cloud-bolt"></i> Broadcast Severe Weather Warning</button>
