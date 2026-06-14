@@ -100,29 +100,15 @@
         }
         
         /* MASSIVE EMBEDDED LOGO SPECS */
-      .splash-logo-img {
-    width: 550px;
-    height: 550px;
-    max-width: 90vw;
-    max-height: 55vh;
-    object-fit: contain;
-    margin-bottom: 20px;
-
-    filter:
-        drop-shadow(0 8px 18px rgba(0, 0, 0, 0.30))
-        drop-shadow(0 0 12px rgba(0, 170, 255, 0.25));
-
-    animation: tacticalPulse 4s ease-in-out infinite;
-}
-
-@keyframes tacticalPulse {
-    0%, 100% {
-        transform: translateY(0px) scale(1);
-    }
-    50% {
-        transform: translateY(-12px) scale(1.02);
-    }
-}
+        .splash-logo-img {
+            width: 450px; height: 450px; max-width: 85vw; max-height: 45vh; object-fit: contain; margin-bottom: 20px;
+            filter: drop-shadow(0 10px 35px rgba(0, 0, 0, 0.65));
+            animation: tacticalPulse 4s ease-in-out infinite;
+        }
+        @keyframes tacticalPulse {
+            0%, 100% { transform: translateY(0px) scale(1); }
+            50% { transform: translateY(-12px) scale(1.02); }
+        }
         
         .search-anim-container {
             position: relative; width: 100%; max-width: 290px; height: 44px; 
@@ -404,6 +390,7 @@
         setTimeout(() => { map.invalidateSize(); }, 50);
     }
 
+    // --- FIX: TARGET ROOT CONFIGURATION SUB-NODES NATIVELY ---
     function triggerManualMute() {
         db.ref('config/syncCommand').set("MUTE_ALL").then(() => {
             alert("MANUAL MUTE INSTRUCTION DISPATCHED TO RECEIVER.");
@@ -529,6 +516,7 @@
         });
     }
 
+    // --- FIX: DESPATCH COMMAND TO NESTED PATH CONFIG BOUNDS ---
     function updateGeofence() {
         const lat = parseFloat(document.getElementById('cmdLat').value);
         const lon = parseFloat(document.getElementById('cmdLon').value);
