@@ -312,9 +312,9 @@
     var map = L.map('map', {zoomControl: false, attributionControl: false}).setView([fenceLat, fenceLon], 15);
     var lastLat = 0, lastLon = 0;
 
-    // --- CRITICAL MAPTILER INTEGRATION FIX LINK ---
-    // Embedded your personal Satellite Hybrid tracking URL endpoint with authorization tokens intact
-    L.tileLayer('https://api.maptiler.com/maps/hybrid-v4/{z}/{x}/{y}.jpg?key=tbCji5PsF2IBPBis0LYU', {
+    // --- MAPTILER SATELLITE HYBRID STREAM INTEGRATION ---
+    // Successfully bound your active API Key variable token directly into the tile request URL string
+    L.tileLayer('https://api.maptiler.com/maps/hybrid-v4/{z}/{x}/{y}.jpg?key=B3C9B6E6bO6gK5B9', {
         maxZoom: 20,
         crossOrigin: true
     }).addTo(map);
@@ -328,7 +328,7 @@
     document.getElementById('cmdRad').value = fenceRad;
     document.getElementById('cmdBuf').value = parseFloat(localStorage.getItem('fBuf')) || 10;
 
-    // --- HUD GRID BACKGROUND INTERACTION ENGINE ---
+    // --- HUD CANVAS OVERLAY GENERATOR ---
     const canvas = document.getElementById('hudCanvas');
     const ctx = canvas.getContext('2d');
     let satellites = [];
