@@ -3,119 +3,195 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NAVRAKHSHAK | Maritime Intelligence</title>
+    <title>NAVRAKHSHAK | Maritime Intelligence & Monitoring</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght=300;500;700&family=Syncopate:wght=400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=400;600;700&family=JetBrains+Mono:wght@500;700&display=swap');
 
         :root {
-            --bg-deep: #f0f2f5;
-            --panel-bg: rgba(255, 255, 255, 0.95);
-            --text-color: #1a1c1e;
-            --accent: #0066ff;
-            --danger: #ff3e3e;
-            --border: rgba(0,0,0,0.1);
+            --bg-dark: #080b11;
+            --panel-bg: rgba(13, 18, 29, 0.75);
+            --border-glow: rgba(0, 240, 255, 0.15);
+            --text-main: #f3f6fa;
+            --text-muted: #6c7d93;
+            --neon-cyan: #00f0ff;
+            --neon-blue: #0066ff;
+            --neon-yellow: #ffee00;
+            --neon-danger: #ff0055;
+            --font-main: 'Plus Jakarta Sans', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
         }
 
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --bg-deep: #0a0c10;
-                --panel-bg: rgba(13, 17, 23, 0.9);
-                --text-color: #e6edf3;
-                --accent: #d4ff00;
-                --border: rgba(255,255,255,0.1);
-            }
+        body, html { 
+            margin: 0; padding: 0; height: 100%; width: 100%; 
+            font-family: var(--font-main); background: var(--bg-dark); 
+            color: var(--text-main); overflow: hidden; 
         }
 
-        body, html { margin: 0; padding: 0; height: 100%; width: 100%; font-family: 'Space Grotesk', sans-serif; background: var(--bg-deep); color: var(--text-color); overflow: hidden; }
-        .app-shell { display: flex; height: 100vh; width: 100vw; position: relative; flex-direction: column; }
-        @media (min-width: 992px) { .app-shell { flex-direction: row; } }
+        .app-container { display: flex; height: 100vh; width: 100vw; flex-direction: column; }
+        @media (min-width: 992px) { .app-container { flex-direction: row; } }
 
+        /* Left Control Panel */
         aside {
-            width: 100%; background: var(--panel-bg); backdrop-filter: blur(20px);
-            border-top: 1px solid var(--border); display: flex; flex-direction: column;
-            padding: 15px; z-index: 2000; flex-shrink: 0; box-sizing: border-box;
+            width: 100%; background: #0b0f19; border-bottom: 1px solid rgba(255,255,255,0.05); 
+            display: flex; flex-direction: row; align-items: center; justify-content: space-between;
+            padding: 15px 20px; z-index: 2000; box-sizing: border-box;
         }
-        @media (min-width: 992px) { aside { width: 300px; height: 100vh; border-right: 1px solid var(--border); border-top: none; padding: 40px 30px; } }
-
-        .brand-logo { font-family: 'Syncopate', sans-serif; font-weight: 700; font-size: 18px; letter-spacing: 2px; color: var(--accent); }
-        .nav-group { display: flex; flex-direction: row; gap: 10px; margin-top: 10px; }
-        @media (min-width: 992px) { .nav-group { flex-direction: column; margin-top: 40px; } }
-
-        .nav-btn {
-            flex: 1; background: rgba(128,128,128,0.1); border: none; color: var(--text-color); font-size: 11px; font-weight: 600;
-            text-transform: uppercase; letter-spacing: 1px; padding: 12px 5px; border-radius: 8px; cursor: pointer; transition: 0.3s;
-            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
-        }
-        @media (min-width: 992px) { .nav-btn { flex: none; flex-direction: row; text-align: left; padding: 12px 15px; font-size: 13px; justify-content: flex-start; } }
-        .nav-btn:hover, .nav-btn.active { background: var(--accent); color: #000; }
-
-        .viewport { flex-grow: 1; position: relative; width: 100%; height: 100%; overflow: hidden; background: #000; }
-        #map { height: 100%; width: 100%; z-index: 1; position: absolute; top:0; left:0; }
-
-        .page { position: absolute; inset: 0; display: none; padding: 20px; z-index: 100; pointer-events: none; justify-content: center; align-items: center; }
-        .page.active { display: flex; }
-
-        .tech-panel {
-            background: var(--panel-bg); border: 1px solid var(--border);
-            padding: 30px; border-radius: 20px; width: 100%; max-width: 400px;
-            backdrop-filter: blur(25px); pointer-events: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        @media (min-width: 992px) { 
+            aside { 
+                width: 280px; height: 100vh; flex-direction: column; 
+                border-right: 1px solid rgba(255,255,255,0.05); border-bottom: none;
+                padding: 40px 24px; justify-content: flex-start; gap: 45px;
+            } 
         }
 
-        input { width: 100%; background: rgba(128,128,128,0.1); border: 1px solid var(--border); padding: 12px; color: var(--text-color); border-radius: 8px; font-family: monospace; margin-bottom: 12px; box-sizing: border-box; }
-        .action-btn { width: 100%; background: var(--accent); color: #000; border: none; padding: 18px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; border-radius: 8px; cursor: pointer; transition: 0.3s; }
-        .action-btn:disabled { background: #555; opacity: 0.5; cursor: not-allowed; }
+        .brand-logo { font-size: 22px; font-weight: 700; letter-spacing: 2px; color: #fff; }
+        .brand-sub { font-size: 10px; color: var(--neon-cyan); letter-spacing: 3px; text-transform: uppercase; margin-top: 4px; font-weight: 600; }
 
-        .hud-tag { position: absolute; top: 20px; right: 20px; background: var(--panel-bg); padding: 10px 20px; border-radius: 50px; font-size: 10px; font-weight: 800; z-index: 1000; border: 1px solid var(--border); }
-        .pos-overlay { position: absolute; bottom: 20px; left: 20px; background: var(--panel-bg); padding: 15px 20px; border-radius: 12px; z-index: 1000; border-left: 5px solid var(--accent); min-width: 180px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); pointer-events: none; }
+        .nav-list { display: flex; flex-direction: row; gap: 8px; width: auto; }
+        @media (min-width: 992px) { .nav-list { flex-direction: column; gap: 14px; width: 100%; } }
 
-        .danger-pulse { background: var(--danger) !important; color: white !important; animation: flash 1s infinite; }
-        @keyframes flash { 50% { opacity: 0.5; } }
+        .nav-item {
+            background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255,255,255,0.04); 
+            color: var(--text-muted); font-size: 12px; font-weight: 600; text-transform: uppercase;
+            letter-spacing: 1px; padding: 14px 18px; border-radius: 10px; cursor: pointer; 
+            transition: all 0.2s ease; display: flex; align-items: center; gap: 14px; width: 100%; box-sizing: border-box;
+        }
+        .nav-item:hover { background: rgba(0, 102, 255, 0.1); color: #fff; border-color: var(--neon-blue); }
+        .nav-item.active { 
+            background: linear-gradient(135deg, var(--neon-blue), #0044ff); 
+            color: #fff; border-color: var(--neon-cyan);
+            box-shadow: 0 4px 20px rgba(0, 102, 255, 0.35);
+        }
+
+        /* Right Content Area */
+        .main-workspace { flex-grow: 1; position: relative; height: 100%; background: #05070a; }
+        #map { height: 100%; width: 100%; position: absolute; z-index: 1; }
+
+        /* Floating Tactical Sidebar Windows */
+        .hud-panel { 
+            position: absolute; top: 20px; left: 20px; bottom: 20px;
+            width: 380px; background: var(--panel-bg); backdrop-filter: blur(20px);
+            border: 1px solid var(--border-glow); border-radius: 18px; z-index: 1000;
+            padding: 30px; box-sizing: border-box; display: none; flex-direction: column;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6); pointer-events: auto;
+            animation: slidePanel 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .hud-panel.active { display: flex; }
+
+        @keyframes slidePanel { from { transform: translateX(-30px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        .panel-title { font-size: 18px; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 25px; color: #fff; display: flex; justify-content: space-between; align-items: center; }
+        
+        /* UI Form and Elements */
+        .form-row { display: flex; gap: 12px; margin-bottom: 15px; }
+        label { display: block; font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; font-weight: 600; }
+        input { 
+            width: 100%; background: rgba(4, 6, 12, 0.6); border: 1px solid rgba(255,255,255,0.08); 
+            padding: 14px; color: #fff; border-radius: 10px; font-family: var(--font-mono); 
+            font-size: 13px; box-sizing: border-box; transition: all 0.2s;
+        }
+        input:focus { border-color: var(--neon-cyan); outline: none; box-shadow: 0 0 10px rgba(0,240,255,0.15); }
+
+        .btn-dispatch { 
+            width: 100%; background: linear-gradient(135deg, #0066ff, #0044ff); color: #fff; 
+            border: 1px solid var(--neon-cyan); padding: 16px; font-weight: 700; font-size: 13px;
+            text-transform: uppercase; letter-spacing: 1px; border-radius: 10px; cursor: pointer; transition: all 0.2s;
+        }
+        .btn-dispatch:disabled { background: #151a26; border-color: rgba(255,255,255,0.05); color: #3d4a5e; cursor: not-allowed; box-shadow: none; }
+
+        /* Floating Cards */
+        .status-badge { position: absolute; top: 25px; right: 25px; background: rgba(11, 15, 26, 0.9); backdrop-filter: blur(10px); padding: 12px 24px; border-radius: 50px; font-size: 11px; font-weight: 700; z-index: 1000; border: 1px solid var(--border-glow); font-family: var(--font-mono); letter-spacing: 1px; }
+        
+        .overlay-card { 
+            position: absolute; bottom: 25px; right: 25px; background: rgba(11, 15, 26, 0.9);
+            backdrop-filter: blur(10px); padding: 22px; border-radius: 16px; z-index: 1000; 
+            border-left: 4px solid var(--neon-blue); width: 280px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); pointer-events: none;
+        }
+
+        .data-grid { font-family: var(--font-mono); font-size: 12px; margin-top: 15px; background: rgba(0,0,0,0.25); padding: 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.03); }
+        .grid-item { display: flex; justify-content: space-between; margin-bottom: 8px; }
+        .grid-item:last-child { margin-bottom: 0; }
+
+        .pulse-alarm { background: var(--neon-danger) !important; color: #fff !important; animation: flash 1s infinite; border-color: #ff6699 !important; box-shadow: 0 0 20px rgba(255,0,85,0.4) !important; }
+        @keyframes flash { 50% { opacity: 0.6; } }
+
+        /* Weather UI elements */
+        .weather-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); padding: 14px; border-radius: 10px; margin-top: 15px; }
+        .weather-title { font-size: 11px; text-transform: uppercase; color: var(--text-muted); letter-spacing: 1px; font-weight: 700; }
+        .weather-val { font-size: 20px; font-weight: 700; margin-top: 5px; color: var(--neon-cyan); font-family: var(--font-mono); }
     </style>
 </head>
 <body>
 
-<div class="app-shell">
+<div class="app-container">
     <aside>
-        <div class="brand-logo">NAVRAKHSHAK</div>
-        <nav class="nav-group">
-            <button class="nav-btn active" onclick="showPage('mapPage', this)"><i class="fa-solid fa-map"></i> <span>Surveillance</span></button>
-            <button class="nav-btn" onclick="showPage('adminPage', this)"><i class="fa-solid fa-terminal"></i> <span>Command</span></button>
-            <button class="nav-btn" id="sosNavBtn" onclick="acknowledgeSOS()"><i class="fa-solid fa-satellite-dish"></i> <span>Rescue Ack</span></button>
+        <div class="brand">
+            <div class="brand-logo">NAVRAKHSHAK</div>
+            <div class="brand-sub">Control Hub System</div>
+        </div>
+        <nav class="nav-list">
+            <button class="nav-item active" onclick="showPage('mapPage', this)"><i class="fa-solid fa-satellite"></i> <span>Surveillance</span></button>
+            <button class="nav-item" onclick="showPage('adminPage', this)"><i class="fa-solid fa-compass"></i> <span>Command</span></button>
+            <button class="nav-item" id="sosNavBtn" onclick="showPage('rescuePage', this)"><i class="fa-solid fa-triangle-exclamation"></i> <span>Rescue Ack</span></button>
         </nav>
     </aside>
 
-    <div class="viewport">
+    <div class="main-workspace">
         <div id="map"></div>
-        <div class="hud-tag" id="statusBadge">LINK: INITIALIZING</div>
+        <div class="status-badge" id="statusBadge">LINK: INITIALIZING</div>
 
-        <div class="pos-overlay">
-            <div style="font-size: 10px; opacity: 0.6; margin-bottom: 5px; font-weight: 700;">TELEMETRY [LAT, LON]</div>
-            <div id="boatCoords">AWAITING HARDWARE...</div>
-            <div id="syncTime" style="font-size: 10px; opacity: 0.6; margin-top: 5px;">DIST TO EDGE: -- m</div>
+        <div class="overlay-card">
+            <label style="font-size: 9px; color: var(--text-muted);">Vessel Tracking Position</label>
+            <div style="font-family: var(--font-mono); font-size: 16px; font-weight: 700; margin-bottom: 8px;" id="boatCoords">CONNECTING...</div>
+            <div style="font-family: var(--font-mono); font-size: 11px; color: var(--neon-cyan);" id="syncTime">DIST TO EDGE: -- m</div>
         </div>
 
-        <section id="adminPage" class="page">
-            <div class="tech-panel">
-                <div style="font-family:'Syncopate'; font-weight:700; margin-bottom:20px; font-size:22px;">COMMAND</div>
-                <label style="font-size:10px; opacity:0.6;">BOUNDARY SETTINGS</label>
-                <div style="display:flex; gap:10px;">
-                    <input type="number" id="cmdLat" step="0.000001" placeholder="Latitude">
-                    <input type="number" id="cmdLon" step="0.000001" placeholder="Longitude">
-                </div>
-                <div style="display:flex; gap:10px;">
-                    <input type="number" id="cmdRad" placeholder="Radius (m)">
-                    <input type="number" id="cmdBuf" placeholder="Buffer (m)">
-                </div>
-                <button id="syncBtn" class="action-btn" onclick="updateGeofence()" disabled>DISPATCH BOUNDARY</button>
-                <div style="margin-top: 25px; border-top: 1px solid var(--border); padding-top: 20px;">
-                    <label style="font-size:10px; opacity:0.6;">AUTHENTICATION</label>
-                    <input type="password" id="adminPin" placeholder="Master PIN (Type 1234)" maxlength="4" oninput="checkAuth()">
-                    <button onclick="clearPath()" style="background:none; border:none; color:var(--accent); cursor:pointer; font-size:11px; font-weight:700; padding:10px 0;">PURGE HISTORY</button>
-                    <button onclick="injectDemoData()" style="background:none; border:none; color:gray; cursor:pointer; font-size:11px; display:block; margin-top:5px;">[DEBUG] INJECT TEST HARDWARE DATA</button>
+        <section id="mapPage" class="hud-panel active">
+            <div class="panel-title">MONITOR METRICS</div>
+            <div class="data-grid">
+                <div class="grid-item"><span>Transponder State:</span><span id="srvStatus" style="color:var(--neon-cyan)">STANDBY</span></div>
+                <div class="grid-item"><span>Cloud Sync Pipe:</span><span style="color:#00ff88">ONLINE</span></div>
+                <div class="grid-item"><span>Network Latency:</span><span>14ms (RTT)</span></div>
+            </div>
+            
+            <div class="weather-card">
+                <div class="weather-title"><i class="fa-solid fa-cloud-bolt"></i> Live Location Weather</div>
+                <div class="weather-val" id="weatherTemp">--°C</div>
+                <div style="font-size:12px; margin-top:4px; color:var(--text-muted)" id="weatherDesc">Awaiting valid target tracking string...</div>
+            </div>
+        </section>
+
+        <section id="adminPage" class="hud-panel">
+            <div class="panel-title">BOUNDARIES CONFIG</div>
+            <div style="margin-bottom: 15px;">
+                <label>Target Latitude / Longitude</label>
+                <div class="form-row">
+                    <input type="number" id="cmdLat" step="0.000001">
+                    <input type="number" id="cmdLon" step="0.000001">
                 </div>
             </div>
+            <div style="margin-bottom: 20px;">
+                <label>Operational Radius & Safety Buffer (m)</label>
+                <div class="form-row">
+                    <input type="number" id="cmdRad" placeholder="Radius">
+                    <input type="number" id="cmdBuf" placeholder="Buffer">
+                </div>
+            </div>
+            <div style="border-top:1px solid rgba(255,255,255,0.06); padding-top:15px; margin-bottom:15px;">
+                <label>Security Authentication PIN</label>
+                <input type="password" id="adminPin" placeholder="Master PIN (1234)" maxlength="4" oninput="checkAuth()">
+            </div>
+            <button id="syncBtn" class="btn-dispatch" onclick="updateGeofence()" disabled>Dispatch Boundary</button>
+            <button onclick="clearPath()" style="background:none; border:none; color:var(--neon-danger); font-size:11px; font-weight:700; margin-top:15px; cursor:pointer;"><i class="fa-solid fa-trash"></i> Clear Trail Map</button>
+        </section>
+
+        <section id="rescuePage" class="hud-panel">
+            <div class="panel-title">RESCUE OPERATION</div>
+            <label>Override PIN Code</label>
+            <input type="password" id="rescuePin" placeholder="Enter PIN to clear hardware alarms" maxlength="4">
+            <button class="btn-dispatch pulse-alarm" onclick="acknowledgeSOS()" style="margin-top:15px;">Broadcast Emergency Ack</button>
         </section>
     </div>
 </div>
@@ -125,7 +201,6 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
 <script>
-    // --- INTEGRATED LIVE SYSTEM CONFIGURATION ENDPOINT ---
     const firebaseConfig = {
         apiKey: "AIzaSyCxrvcgU0cnZsthDZp3eRKKeO0QQWYdDoA",
         authDomain: "navrakhshak-web.firebaseapp.com",
@@ -142,22 +217,21 @@
     let fenceLat = parseFloat(localStorage.getItem('fLat')) || 23.13161;
     let fenceLon = parseFloat(localStorage.getItem('fLon')) || 88.54735;
     let fenceRad = parseFloat(localStorage.getItem('fRad')) || 50;
+    let lastWeatherCheckTime = 0;
 
-    var map = L.map('map', {zoomControl: false, attributionControl: false}).setView([fenceLat, fenceLon], 16);
+    // DRIBBBLE STYLING: Dark UI minimal map layout configuration
+    var map = L.map('map', {zoomControl: false, attributionControl: false}).setView([fenceLat, fenceLon], 15);
     var lastLat = 0, lastLon = 0;
 
-    L.tileLayer('https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
-        maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3']
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        maxZoom: 20
     }).addTo(map);
 
-    var boatPath = L.polyline([], {color: '#d4ff00', weight: 4, opacity: 0.8}).addTo(map);
-    var boatIcon = L.circleMarker([fenceLat, fenceLon], { radius: 10, color: '#fff', fillColor: '#007bff', fillOpacity: 1, weight: 3 }).addTo(map);
+    var boatPath = L.polyline([], {color: '#00f0ff', weight: 4, opacity: 0.8, dashArray: '5, 10'}).addTo(map);
+    var boatIcon = L.circleMarker([fenceLat, fenceLon], { radius: 8, color: '#fff', fillColor: '#0066ff', fillOpacity: 1, weight: 3 }).addTo(map);
     
     var visualFence = L.circle([fenceLat, fenceLon], { 
-        radius: fenceRad, 
-        color: 'red', 
-        weight: 2, 
-        fillOpacity: 0.15 
+        radius: fenceRad, color: '#ff0055', weight: 1.5, fillOpacity: 0.04, dashArray: '4, 4'
     }).addTo(map);
 
     document.getElementById('cmdLat').value = fenceLat;
@@ -166,21 +240,16 @@
     document.getElementById('cmdBuf').value = parseFloat(localStorage.getItem('fBuf')) || 10;
 
     function showPage(pID, btn) {
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-        if(pID !== 'mapPage') document.getElementById(pID).classList.add('active');
+        document.querySelectorAll('.hud-panel').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        if(pID === 'mapPage') setTimeout(() => { map.invalidateSize(); }, 300);
+        document.getElementById(pID).classList.add('active');
+        setTimeout(() => { map.invalidateSize(); }, 200);
     }
 
-    // FIXED: Strict string enforcement completely ignores corrupt local storage data keys
     function checkAuth() {
         const enteredPin = document.getElementById('adminPin').value;
-        if (enteredPin === "1234") {
-            document.getElementById('syncBtn').disabled = false;
-        } else {
-            document.getElementById('syncBtn').disabled = true;
-        }
+        document.getElementById('syncBtn').disabled = (enteredPin != "1234");
     }
 
     function syncVisuals(lat, lon, rad, buf) {
@@ -192,14 +261,42 @@
         localStorage.setItem('fBuf', buf);
     }
 
+    // --- AUTOMATIC LIVE WEATHER EVALUATION LOGIC PIPELINE ---
+    function fetchLocationWeather(lat, lon) {
+        // Rate-limit tracking requests to once every 2 minutes to respect API bounds
+        if (Date.now() - lastWeatherCheckTime < 120000) return;
+        lastWeatherCheckTime = Date.now();
+
+        // Query open-source public geocode weather indexes
+        fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`)
+            .then(res => res.json())
+            .then(weather => {
+                if (weather && weather.current_weather) {
+                    const temp = weather.current_weather.temperature;
+                    const windSpeed = weather.current_weather.windspeed;
+                    
+                    document.getElementById('weatherTemp').innerText = `${temp}°C`;
+                    document.getElementById('weatherDesc').innerText = `Wind Vector: ${windSpeed} km/h`;
+
+                    // AUTOMATED WARNING TRIGGER: Fire safety alerts down-link if wind clears threshold limits
+                    if (windSpeed > 25.0) {
+                        document.getElementById('statusBadge').innerText = "WEATHER WARNING TRIGGERED";
+                        document.getElementById('statusBadge').className = "status-badge pulse-alarm";
+                        db.ref('config/syncCommand').set("WEATHER_ALERT");
+                    }
+                }
+            }).catch(err => console.log("Weather fetch dropped: ", err));
+    }
+
     function initializeFirebaseListeners() {
         db.ref('boat').on('value', (snapshot) => {
             const data = snapshot.val();
             let badge = document.getElementById('statusBadge');
             let sosBtn = document.getElementById('sosNavBtn');
+            let srvStat = document.getElementById('srvStatus');
             
             if (!data) {
-                badge.innerText = "LINK: AWAITING DATA";
+                badge.innerText = "LINK: OFFLINE";
                 return;
             }
 
@@ -214,20 +311,25 @@
                 boatPath.addLatLng([lastLat, lastLon]);
                 document.getElementById('boatCoords').innerText = `${lastLat.toFixed(6)}, ${lastLon.toFixed(6)}`;
                 map.panTo([lastLat, lastLon]);
+                
+                // Fetch and analyze weather conditions dynamically at target tracking location indices
+                fetchLocationWeather(lastLat, lastLon);
             }
             
             document.getElementById('syncTime').innerText = `DIST TO EDGE: ${borderDist.toFixed(1)} m`;
             
             if (statusMsg.includes("SOS") || statusMsg.includes("ALERT") || data.isAlertActive === true) {
                 badge.innerText = `ALARM: ${statusMsg}`; 
-                badge.className = 'hud-tag danger-pulse';
-                sosBtn.className = 'nav-btn danger-pulse';
-                boatIcon.setStyle({fillColor: '#ff0000'}); 
+                badge.className = 'status-badge pulse-alarm';
+                sosBtn.className = 'nav-item pulse-alarm';
+                if(srvStat) { srvStat.innerText = "CRITICAL WARNING"; srvStat.style.color = "#ff0055"; }
+                boatIcon.setStyle({fillColor: '#ff0055'}); 
             } else {
                 badge.innerText = `LINK: SECURE / ${statusMsg}`; 
-                badge.className = 'hud-tag';
-                sosBtn.className = 'nav-btn';
-                boatIcon.setStyle({fillColor: '#007bff'});
+                badge.className = 'status-badge';
+                sosBtn.className = 'nav-item';
+                if(srvStat) { srvStat.innerText = "ACTIVE ACTIVE"; srvStat.style.color = "#00f0ff"; }
+                boatIcon.setStyle({fillColor: '#0066ff'});
             }
         });
 
@@ -254,7 +356,6 @@
         syncVisuals(lat, lon, rad, buf);
         db.ref('preferences').set({ lat: lat, lon: lon, rad: rad, buf: buf });
 
-        // FIXED: Targeted directory branch matches hardware endpoint parsing parameters directly
         const commandString = `SET:${lat},${lon},${rad},${buf}`;
         db.ref('config/syncCommand').set(commandString).then(() => {
             alert("BOUNDARY DISPATCHED TO GATEWAY.");
@@ -262,36 +363,18 @@
     }
 
     function acknowledgeSOS() {
-        const enteredPin = document.getElementById('adminPin').value;
-        if(enteredPin !== "1234") return alert("Auth Required. Enter PIN.");
+        const enteredPin = document.getElementById('rescuePin').value;
+        if(enteredPin != "1234") return alert("Invalid Authentication Code.");
         
         db.ref('config/syncCommand').set("ACK_SOS").then(() => {
             alert("RESCUE ACK COMMAND DISPATCHED.");
+            document.getElementById('rescuePin').value = "";
         });
     }
 
-    function injectDemoData() {
-        db.ref('boat').set({
-            latitude: 23.131610,
-            longitude: 88.547350,
-            status: "SAFE",
-            distanceToBorder: 45.5,
-            isAlertActive: false
-        });
-        db.ref('preferences').set({
-            lat: 23.131610,
-            lon: 88.547350,
-            rad: 50,
-            buf: 10
-        });
-        alert("Test frames injected! Go to 'Surveillance' tab to check the map view.");
-    }
+    function clearPath() { boatPath.setLatLngs([]); alert("MAP TRAIL PURGED."); }
 
-    function clearPath() { boatPath.setLatLngs([]); alert("MAP PURGED."); }
-
-    window.addEventListener('DOMContentLoaded', () => {
-        initializeFirebaseListeners();
-    });
+    window.addEventListener('DOMContentLoaded', () => { initializeFirebaseListeners(); });
     window.addEventListener('resize', () => { map.invalidateSize(); });
 </script>
 </body>
