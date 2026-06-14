@@ -11,7 +11,7 @@
 
         :root {
             --bg-dark: #05070c;
-            --panel-bg: rgba(11, 15, 26, 0.85);
+            --panel-bg: rgba(11, 15, 26, 0.9);
             --border-glow: rgba(0, 240, 255, 0.12);
             --text-main: #f3f6fa;
             --text-muted: #5c6e85;
@@ -28,10 +28,43 @@
             color: var(--text-main); overflow: hidden; 
         }
 
+        /* --- PAGE 1: TITLE/WELCOME SPLASH PAGE --- */
+        #titlePage {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: radial-gradient(circle at center, #0a1128 0%, #03050a 100%);
+            z-index: 9999; display: flex; flex-direction: column; align-items: center;
+            justify-content: center; text-align: center; transition: all 0.5s ease-in-out;
+        }
+        #titlePage.hidden { transform: translateY(-100vh); opacity: 0; pointer-events: none; }
+        
+        .title-container { max-width: 600px; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        
+        /* Main Splash Emblem */
+        .splash-logo-img {
+            width: 180px; height: 180px; object-fit: contain; margin-bottom: 25px;
+            filter: drop-shadow(0 0 20px rgba(0, 240, 255, 0.2));
+            animation: floating 3s ease-in-out infinite;
+        }
+        @keyframes floating {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+
+        .title-logo { font-size: 44px; font-weight: 700; letter-spacing: 6px; color: #fff; text-shadow: 0 0 20px rgba(0,240,255,0.2); margin-bottom: 5px; }
+        .title-sub { font-size: 13px; color: var(--neon-cyan); letter-spacing: 4px; text-transform: uppercase; font-weight: 600; margin-bottom: 40px; }
+        
+        .btn-enter {
+            background: transparent; border: 1px solid var(--neon-cyan); color: var(--neon-cyan);
+            padding: 15px 40px; font-size: 14px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+            border-radius: 30px; cursor: pointer; transition: all 0.3s; box-shadow: 0 0 15px rgba(0,240,255,0.1);
+        }
+        .btn-enter:hover { background: var(--neon-cyan); color: #000; box-shadow: 0 0 25px rgba(0,240,255,0.4); }
+
+        /* --- MAIN SYSTEM LAYOUT (PAGE 2) --- */
         .app-container { display: flex; height: 100vh; width: 100vw; flex-direction: column; }
         @media (min-width: 992px) { .app-container { flex-direction: row; } }
 
-        /* Left Navigation Sidebar with Embedded Metrics */
         aside {
             width: 100%; background: #080b12; border-bottom: 1px solid rgba(255,255,255,0.04); 
             display: flex; flex-direction: column; padding: 16px; z-index: 2000; box-sizing: border-box; gap: 20px;
@@ -39,17 +72,19 @@
         @media (min-width: 992px) { 
             aside { 
                 width: 260px; height: 100vh; border-right: 1px solid rgba(255,255,255,0.04); border-bottom: none;
-                padding: 35px 20px; justify-content: flex-start; gap: 30px;
+                padding: 35px 20px; justify-content: flex-start; gap: 25px;
             } 
         }
 
-        .brand { text-align: left; }
-        .brand-logo { font-size: 20px; font-weight: 700; letter-spacing: 2px; color: #fff; }
-        .brand-sub { font-size: 9px; color: var(--neon-cyan); letter-spacing: 2.5px; text-transform: uppercase; margin-top: 3px; font-weight: 600; }
+        /* Sidebar Brand Layout with Logo */
+        .brand { text-align: left; cursor: pointer; display: flex; align-items: center; gap: 12px; }
+        .brand-logo-img { width: 42px; height: 42px; object-fit: contain; border-radius: 6px; }
+        .brand-text-group { display: flex; flex-direction: column; }
+        .brand-logo { font-size: 18px; font-weight: 700; letter-spacing: 1.5px; color: #fff; line-height: 1.2; }
+        .brand-sub { font-size: 8.5px; color: var(--neon-cyan); letter-spacing: 2px; text-transform: uppercase; font-weight: 600; margin-top: 1px; }
 
         .sidebar-metrics { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.03); border-radius: 10px; padding: 12px; font-family: var(--font-mono); font-size: 11px; }
         .metric-line { display: flex; justify-content: space-between; margin-bottom: 6px; }
-        .metric-line:last-child { margin-bottom: 0; }
 
         .nav-list { display: flex; flex-direction: row; gap: 6px; width: 100%; overflow-x: auto; }
         @media (min-width: 992px) { .nav-list { flex-direction: column; gap: 12px; overflow-x: visible; } }
@@ -66,187 +101,158 @@
             box-shadow: 0 4px 15px rgba(0, 102, 255, 0.3);
         }
 
-        /* Workspace Viewport */
         .main-workspace { flex-grow: 1; position: relative; height: 100%; background: #030407; }
-        #map { height: 100%; width: 100%; position: absolute; z-index: 1; }
+        #map { height: 100%; width: 100%; position: absolute; z-index: 1; transition: opacity 0.3s; }
 
-        /* Control Sliding Sidebar Panels */
+        /* --- PANELS VIEW ENGINE --- */
         .hud-panel { 
-            position: absolute; top: 15px; left: 15px; bottom: 15px;
-            width: calc(100% - 30px); max-width: 360px; background: var(--panel-bg); backdrop-filter: blur(20px);
+            position: absolute; top: 15px; left: 15px; bottom: 15px; right: 15px;
+            background: var(--panel-bg); backdrop-filter: blur(20px);
             border: 1px solid var(--border-glow); border-radius: 14px; z-index: 1000;
-            padding: 24px; box-sizing: border-box; display: none; flex-direction: column;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.5); pointer-events: auto;
-            animation: slideLeft 0.25s ease-out;
+            padding: 30px; box-sizing: border-box; display: none; flex-direction: column;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.5); pointer-events: auto; overflow-y: auto;
         }
-        .hud-panel.active { display: flex; }
-
-        /* Right Collapsible Weather Panel */
-        .weather-panel {
-            position: absolute; top: 15px; right: -350px; bottom: 15px;
-            width: calc(100% - 30px); max-width: 320px; background: var(--panel-bg); backdrop-filter: blur(20px);
-            border: 1px solid var(--border-glow); border-radius: 14px; z-index: 1000;
-            padding: 24px; box-sizing: border-box; display: flex; flex-direction: column;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.5); pointer-events: auto;
-            transition: right 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .weather-panel.open { right: 15px; }
-
-        @keyframes slideLeft { from { transform: translateX(-20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-
-        .panel-title { font-size: 16px; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 20px; color: #fff; display: flex; justify-content: space-between; align-items: center; }
         
-        .form-row { display: flex; gap: 10px; margin-bottom: 12px; }
-        label { display: block; font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; font-weight: 600; }
+        #surveillancePage.active { display: flex; background: transparent; border: none; backdrop-filter: none; box-shadow: none; pointer-events: none; }
+        #commandPage.active, #rescuePage.active, #weatherPage.active { display: flex; }
+
+        .panel-title { font-size: 18px; font-weight: 700; letter-spacing: 1px; margin-bottom: 25px; color: #fff; text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 12px;}
+        .form-row { display: flex; gap: 15px; margin-bottom: 15px; }
+        label { display: block; font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; font-weight: 600; }
         input { 
             width: 100%; background: rgba(3, 5, 10, 0.7); border: 1px solid rgba(255,255,255,0.06); 
-            padding: 12px; color: #fff; border-radius: 8px; font-family: var(--font-mono); 
-            font-size: 12px; box-sizing: border-box; transition: all 0.2s;
+            padding: 14px; color: #fff; border-radius: 8px; font-family: var(--font-mono); font-size: 13px; box-sizing: border-box;
         }
         input:focus { border-color: var(--neon-cyan); outline: none; }
 
         .btn-dispatch { 
-            width: 100%; background: linear-gradient(135deg, #0066ff, #0044ff); color: #fff; 
-            border: 1px solid var(--neon-cyan); padding: 14px; font-weight: 700; font-size: 12px;
-            text-transform: uppercase; letter-spacing: 1px; border-radius: 8px; cursor: pointer; transition: all 0.2s;
+            width: 100%; background: linear-gradient(135deg, #0066ff, #0044ff); color: #fff; border: 1px solid var(--neon-cyan); 
+            padding: 16px; font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; border-radius: 8px; cursor: pointer;
         }
         .btn-dispatch:disabled { background: #121722; border-color: rgba(255,255,255,0.03); color: #343f52; cursor: not-allowed; }
-
-        .btn-danger {
-            width: 100%; background: rgba(255, 0, 85, 0.1); color: var(--neon-danger);
-            border: 1px solid var(--neon-danger); padding: 12px; font-weight: 600; font-size: 11px;
-            text-transform: uppercase; letter-spacing: 1px; border-radius: 8px; cursor: pointer; transition: all 0.2s; margin-top: 10px;
-        }
+        .btn-danger { width: 100%; background: rgba(255, 0, 85, 0.1); color: var(--neon-danger); border: 1px solid var(--neon-danger); padding: 14px; font-weight: 600; font-size: 12px; text-transform: uppercase; border-radius: 8px; cursor: pointer; margin-top: 15px; }
         .btn-danger:hover { background: var(--neon-danger); color: #fff; }
-
-        .btn-mute {
-            width: 100%; background: rgba(255, 238, 0, 0.08); color: #ffee00;
-            border: 1px solid #ffee00; padding: 12px; font-weight: 600; font-size: 11px;
-            text-transform: uppercase; letter-spacing: 1px; border-radius: 8px; cursor: pointer; transition: all 0.2s; margin-top: 15px;
-        }
+        .btn-mute { width: 100%; background: rgba(255, 238, 0, 0.08); color: #ffee00; border: 1px solid #ffee00; padding: 14px; font-weight: 600; font-size: 12px; text-transform: uppercase; border-radius: 8px; cursor: pointer; margin-top: 15px; }
         .btn-mute:hover { background: #ffee00; color: #000; }
 
-        .status-badge { position: absolute; top: 15px; right: 15px; background: rgba(8, 11, 20, 0.9); backdrop-filter: blur(10px); padding: 10px 18px; border-radius: 30px; font-size: 10px; font-weight: 700; z-index: 999; border: 1px solid var(--border-glow); font-family: var(--font-mono); letter-spacing: 0.5px; transition: right 0.3s; }
-        .status-badge.shift { right: 350px; }
+        .status-badge { position: absolute; top: 15px; right: 15px; background: rgba(8, 11, 20, 0.9); backdrop-filter: blur(10px); padding: 12px 20px; border-radius: 30px; font-size: 11px; font-weight: 700; z-index: 1010; border: 1px solid var(--border-glow); font-family: var(--font-mono); letter-spacing: 0.5px; }
+        .overlay-card { position: absolute; bottom: 15px; left: 15px; background: rgba(8, 11, 20, 0.9); backdrop-filter: blur(10px); padding: 18px; border-radius: 12px; z-index: 1010; border-left: 4px solid var(--neon-blue); width: calc(100% - 30px); max-width: 290px; }
 
-        .overlay-card { 
-            position: absolute; bottom: 15px; left: 15px; background: rgba(8, 11, 20, 0.9);
-            backdrop-filter: blur(10px); padding: 16px; border-radius: 12px; z-index: 999; 
-            border-left: 4px solid var(--neon-blue); width: calc(100% - 30px); max-width: 280px; pointer-events: none;
-        }
-
-        .weather-toggle-btn {
-            position: absolute; bottom: 15px; right: 15px; background: rgba(8, 11, 20, 0.9);
-            backdrop-filter: blur(10px); border: 1px solid var(--border-glow); color: var(--neon-cyan);
-            width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            z-index: 999; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.4); transition: all 0.3s;
-        }
-        .weather-toggle-btn.shift { right: 350px; color: var(--neon-danger); transform: rotate(180deg); }
+        .weather-display-box { max-width: 400px; }
+        .weather-val { font-size: 42px; font-weight: 700; margin-top: 5px; color: var(--neon-cyan); font-family: var(--font-mono); }
+        .weather-sub-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; font-family: var(--font-mono); }
+        .sub-weather-box { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.04); border-radius: 10px; padding: 15px; }
 
         .pulse-alarm { background: var(--neon-danger) !important; color: #fff !important; animation: flash 1s infinite; border-color: #ff6699 !important; }
         @keyframes flash { 50% { opacity: 0.6; } }
 
-        .weather-val { font-size: 24px; font-weight: 700; margin-top: 4px; color: var(--neon-cyan); font-family: var(--font-mono); }
-        .weather-sub-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; font-family: var(--font-mono); font-size: 11px; }
-        .sub-weather-box { background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.03); border-radius: 8px; padding: 10px; }
-
-        @media (max-width: 768px) {
-            .hud-panel, .weather-panel { top: auto; bottom: 0; left: 0; right: 0; width: 100%; max-width: 100%; border-radius: 14px 14px 0 0; max-height: 45vh; overflow-y: auto; }
-            .weather-panel { transform: translateY(100%); transition: transform 0.3s ease; right: 0 !important; }
-            .weather-panel.open { transform: translateY(0); }
-            .status-badge.shift, .weather-toggle-btn.shift { right: 15px !important; transform: none; }
+        @media (max-width: 991px) {
+            .hud-panel { top: 70px; bottom: 15px; left: 15px; right: 15px; }
         }
     </style>
 </head>
 <body>
 
+<div id="titlePage">
+    <div class="title-container">
+        <img src="ChatGPT_Image_Jun_14__2026__06_16_00_PM-removebg-preview.png" alt="NavRakhshak Emblem" class="splash-logo-img">
+        <div class="title-logo">NAVRAKHSHAK</div>
+        <div class="title-sub">Tactical Operations Command Hub</div>
+        <button class="btn-enter" onclick="initializeSystemView()"><i class="fa-solid fa-shield-halved"></i> Initialize System</button>
+    </div>
+</div>
+
 <div class="app-container">
     <aside>
-        <div class="brand">
-            <div class="brand-logo">NAVRAKHSHAK</div>
-            <div class="brand-sub">Control Hub System</div>
+        <div class="brand" onclick="returnToTitle()">
+            <img src="ChatGPT Image Jun 14, 2026, 06_21_50 PM.png" alt="NavRakhshak Icon" class="brand-logo-img">
+            <div class="brand-text-group">
+                <div class="brand-logo">NAVRAKHSHAK</div>
+                <div class="brand-sub">Control Hub System</div>
+            </div>
         </div>
 
         <div class="sidebar-metrics">
-            <div class="metric-line"><span>Vessel Node:</span><span id="srvStatus" style="color:var(--neon-cyan)">ACTIVE ACTIVE</span></div>
+            <div class="metric-line"><span>Vessel Node:</span><span id="srvStatus" style="color:var(--neon-cyan)">ACTIVE</span></div>
             <div class="metric-line"><span>Cloud Pipe:</span><span style="color:#00ff88">ONLINE</span></div>
-            <div class="metric-line"><span>Ping Latency:</span><span>14ms (RTT)</span></div>
         </div>
 
         <nav class="nav-list">
-            <button class="nav-item active" onclick="showPage('mapPage', this)"><i class="fa-solid fa-satellite"></i> <span>Surveillance</span></button>
-            <button class="nav-item" onclick="showPage('adminPage', this)"><i class="fa-solid fa-compass"></i> <span>Command</span></button>
-            <button class="nav-item" id="sosNavBtn" onclick="showPage('rescuePage', this)"><i class="fa-solid fa-triangle-exclamation"></i> <span>Rescue Ack</span></button>
+            <button class="nav-item active" onclick="switchPage('surveillancePage', this)"><i class="fa-solid fa-satellite"></i> <span>Surveillance</span></button>
+            <button class="nav-item" onclick="switchPage('commandPage', this)"><i class="fa-solid fa-compass"></i> <span>Command</span></button>
+            <button class="nav-item" id="sosNavBtn" onclick="switchPage('rescuePage', this)"><i class="fa-solid fa-triangle-exclamation"></i> <span>Rescue Ack</span></button>
+            <button class="nav-item" onclick="switchPage('weatherPage', this)"><i class="fa-solid fa-cloud-sun-rain"></i> <span>Weather</span></button>
         </nav>
     </aside>
 
     <div class="main-workspace">
         <div id="map"></div>
+        
         <div class="status-badge" id="statusBadge">LINK: SECURE / SAFE</div>
 
-        <div class="weather-toggle-btn" id="weatherToggle" onclick="toggleWeatherPanel()"><i class="fa-solid fa-cloud-sun-rain"></i></div>
-
-        <div class="overlay-card">
+        <div class="overlay-card" id="telemetryOverlay">
             <label style="font-size: 8px; color: var(--text-muted);">Vessel Tracking Position</label>
-            <div style="font-family: var(--font-mono); font-size: 14px; font-weight: 700; margin-bottom: 5px;" id="boatCoords">23.131600, 88.547360</div>
-            <div style="font-family: var(--font-mono); font-size: 10px; color: var(--neon-cyan);" id="syncTime">DIST TO EDGE: 1998.2 m</div>
+            <div style="font-family: var(--font-mono); font-size: 14px; font-weight: 700; margin-bottom: 5px;" id="boatCoords">--.------, --.------</div>
+            <div style="font-family: var(--font-mono); font-size: 10px; color: var(--neon-cyan);" id="syncTime">DIST TO EDGE: 0.0 m</div>
         </div>
 
-        <section id="mapPage" class="hud-panel active" style="display: none;">
-        </section>
+        <section id="surveillancePage" class="hud-panel active"></section>
 
-        <section id="weatherSidebar" class="weather-panel">
-            <div class="panel-title">METEOROLOGICAL SPEC</div>
-            
-            <label>Atmosphere Core</label>
-            <div class="weather-val" id="weatherTemp">--°C</div>
-            <div style="font-size:11px; margin-top:4px; color:var(--text-muted);" id="weatherDesc">Processing geolocation matrix...</div>
-            
-            <div class="weather-sub-grid">
-                <div class="sub-weather-box">
-                    <label>Wind Flow</label>
-                    <div style="color:#fff; font-weight:700; margin-top:3px;" id="weatherWind">-- km/h</div>
-                </div>
-                <div class="sub-weather-box">
-                    <label>Storm Index</label>
-                    <div style="color:var(--neon-cyan); font-weight:700; margin-top:3px;" id="weatherStorm">NORMAL</div>
-                </div>
-            </div>
-            
-            <button class="btn-danger" onclick="triggerManualWeatherAlert()"><i class="fa-solid fa-cloud-bolt"></i> Broadcast Weather Alert</button>
-        </section>
-
-        <section id="adminPage" class="hud-panel">
-            <div class="panel-title">BOUNDARIES CONFIG</div>
-            <div style="margin-bottom: 12px;">
-                <label>Target Latitude / Longitude</label>
+        <section id="commandPage" class="hud-panel">
+            <div class="panel-title">BOUNDARIES CONFIGURATION</div>
+            <div style="margin-bottom: 15px; max-width: 500px;">
+                <label>Target Center Latitude / Longitude</label>
                 <div class="form-row">
                     <input type="number" id="cmdLat" step="0.000001">
                     <input type="number" id="cmdLon" step="0.000001">
                 </div>
             </div>
-            <div style="margin-bottom: 15px;">
-                <label>Radius & Buffer (meters)</label>
+            <div style="margin-bottom: 20px; max-width: 500px;">
+                <label>Radius & Safety Buffer Bounds (meters)</label>
                 <div class="form-row">
                     <input type="number" id="cmdRad" placeholder="Radius">
                     <input type="number" id="cmdBuf" placeholder="Buffer">
                 </div>
             </div>
-            <div style="border-top:1px solid rgba(255,255,255,0.05); padding-top:12px; margin-bottom:12px;">
+            <div style="border-top:1px solid rgba(255,255,255,0.05); padding-top:15px; margin-bottom:20px; max-width: 500px;">
                 <label>Security Authentication PIN</label>
                 <input type="password" id="adminPin" placeholder="Master PIN (1234)" maxlength="4" oninput="checkAuth()">
             </div>
-            <button id="syncBtn" class="btn-dispatch" onclick="updateGeofence()" disabled>Dispatch Boundary</button>
-            
-            <button class="btn-mute" onclick="triggerManualMute()"><i class="fa-solid fa-volume-xmark"></i> Mute Hardware Buzzers</button>
-            <button onclick="clearPath()" style="background:none; border:none; color:var(--neon-danger); font-size:10px; font-weight:700; margin-top:15px; cursor:pointer; display:block;"><i class="fa-solid fa-trash"></i> Clear Trail Map</button>
+            <div style="max-width: 500px; display: flex; flex-direction: column; gap: 10px;">
+                <button id="syncBtn" class="btn-dispatch" onclick="updateGeofence()" disabled>Dispatch Boundary Vector</button>
+                <button class="btn-mute" onclick="triggerManualMute()"><i class="fa-solid fa-volume-xmark"></i> Mute Hardware Buzzers</button>
+                <button onclick="clearPath()" style="background:none; border:none; color:var(--neon-danger); font-size:11px; font-weight:700; margin-top:10px; cursor:pointer; text-align: left; width: fit-content;"><i class="fa-solid fa-trash"></i> Clear Map Route Trail</button>
+            </div>
         </section>
 
         <section id="rescuePage" class="hud-panel">
-            <div class="panel-title">RESCUE OPERATION</div>
-            <label>Override PIN Code</label>
-            <input type="password" id="rescuePin" placeholder="Enter PIN to clear alarms" maxlength="4">
-            <button class="btn-dispatch pulse-alarm" onclick="acknowledgeSOS()" style="margin-top:15px;">Broadcast Emergency Ack</button>
+            <div class="panel-title">RESCUE OPERATION DEPLOYMENT</div>
+            <div style="max-width: 400px;">
+                <label>Emergency Override Authorization Code</label>
+                <input type="password" id="rescuePin" placeholder="Enter security PIN to clear alarms" maxlength="4">
+                <button class="btn-dispatch pulse-alarm" onclick="acknowledgeSOS()" style="margin-top:20px;">Broadcast Emergency Ack Command</button>
+            </div>
+        </section>
+
+        <section id="weatherPage" class="hud-panel">
+            <div class="panel-title">METEOROLOGICAL LIVE WEATHER DETAILS</div>
+            <div class="weather-display-box">
+                <label>Atmospheric core profile</label>
+                <div class="weather-val" id="weatherTemp">--°C</div>
+                <div style="font-size:12px; margin-top:6px; color:var(--text-muted);" id="weatherDesc">Processing geolocation matrix...</div>
+                
+                <div class="weather-sub-grid">
+                    <div class="sub-weather-box">
+                        <label>Wind Flow Profile</label>
+                        <div style="color:#fff; font-weight:700; font-size: 16px; margin-top:4px;" id="weatherWind">-- km/h</div>
+                    </div>
+                    <div class="sub-weather-box">
+                        <label>Storm Alert Index</label>
+                        <div style="color:var(--neon-cyan); font-weight:700; font-size: 16px; margin-top:4px;" id="weatherStorm">NORMAL</div>
+                    </div>
+                </div>
+                <button class="btn-danger" onclick="triggerManualWeatherAlert()" style="max-width: 100%;"><i class="fa-solid fa-cloud-bolt"></i> Broadcast Severe Weather Warning</button>
+            </div>
         </section>
     </div>
 </div>
@@ -288,29 +294,37 @@
     document.getElementById('cmdRad').value = fenceRad;
     document.getElementById('cmdBuf').value = parseFloat(localStorage.getItem('fBuf')) || 10;
 
-    function showPage(pID, btn) {
+    function initializeSystemView() {
+        document.getElementById('titlePage').classList.add('hidden');
+        setTimeout(() => { map.invalidateSize(); }, 500);
+    }
+
+    function returnToTitle() {
+        document.getElementById('titlePage').classList.remove('hidden');
+    }
+
+    function switchPage(pageId, btn) {
         document.querySelectorAll('.hud-panel').forEach(p => p.classList.remove('active'));
         document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        document.getElementById(pID).classList.add('active');
-        if (window.innerWidth < 768) closeWeatherPanel();
-        setTimeout(() => { map.invalidateSize(); }, 200);
-    }
-
-    function toggleWeatherPanel() {
-        const sideBar = document.getElementById('weatherSidebar');
-        const toggleBtn = document.getElementById('weatherToggle');
-        const badge = document.getElementById('statusBadge');
         
-        sideBar.classList.toggle('open');
-        toggleBtn.classList.toggle('shift');
-        badge.classList.toggle('shift');
-    }
+        btn.classList.add('active');
+        document.getElementById(pageId).classList.add('active');
 
-    function closeWeatherPanel() {
-        document.getElementById('weatherSidebar').classList.remove('open');
-        document.getElementById('weatherToggle').classList.remove('shift');
-        document.getElementById('statusBadge').classList.remove('shift');
+        const mapLayer = document.getElementById('map');
+        const badge = document.getElementById('statusBadge');
+        const overlay = document.getElementById('telemetryOverlay');
+
+        if (pageId === 'surveillancePage') {
+            mapLayer.style.opacity = "1";
+            badge.style.display = "block";
+            overlay.style.display = "block";
+        } else {
+            mapLayer.style.opacity = "0.15"; 
+            badge.style.display = "none";
+            overlay.style.display = "none";
+        }
+        
+        setTimeout(() => { map.invalidateSize(); }, 50);
     }
 
     function triggerManualMute() {
@@ -339,7 +353,6 @@
         localStorage.setItem('fBuf', buf);
     }
 
-    // --- ACCURATE WMO CLIMATE EVALUATION LOGIC PIPELINE ---
     function fetchLocationWeather(lat, lon) {
         if (Date.now() - lastWeatherCheckTime < 60000) return;
         lastWeatherCheckTime = Date.now();
@@ -355,10 +368,6 @@
                     document.getElementById('weatherTemp').innerText = `${temp}°C`;
                     document.getElementById('weatherWind').innerText = `${windSpeed} km/h`;
                     
-                    // FIXED SENSITIVITY CRITERIA: 
-                    // Only flags a storm if wind speeds cross a critical 35 km/h threshold
-                    // OR if the weather code matches severe thunder/hail squalls (Codes 96-99).
-                    // Minor or standard local rain/thunderstorms (Code 95 or lower) are cleanly filtered out.
                     let stormStatus = "NORMAL";
                     if (windSpeed > 35.0 || wCode >= 96) {
                         stormStatus = "CRITICAL STORM DETECTED";
@@ -369,7 +378,6 @@
                         db.ref('config/syncCommand').set("WEATHER_ALERT");
                     } else {
                         document.getElementById('weatherStorm').style.color = "var(--neon-cyan)";
-                        // Reset badge if the alarm was previously activated by automatic weather rules
                         if(document.getElementById('statusBadge').innerText.includes("WEATHER ALERT")) {
                              document.getElementById('statusBadge').innerText = "LINK: SECURE / SAFE";
                              document.getElementById('statusBadge').className = "status-badge";
@@ -384,7 +392,7 @@
                         storm_index: stormStatus
                     });
                 }
-            }).catch(err => console.log("Meteorological data drop context: ", err));
+            }).catch(err => console.log("Meteorological data drop error: ", err));
     }
 
     function initializeFirebaseListeners() {
@@ -416,7 +424,6 @@
             document.getElementById('syncTime').innerText = `DIST TO EDGE: ${borderDist.toFixed(1)} m`;
             
             if (statusMsg.includes("SOS") || statusMsg.includes("ALERT") || data.isAlertActive === true) {
-                // Ensure we don't overwrite a high-priority weather alert message text if it triggered locally first
                 if (!badge.innerText.includes("WEATHER ALERT")) {
                      badge.innerText = `ALARM: ${statusMsg}`;
                      badge.className = 'status-badge pulse-alarm';
