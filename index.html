@@ -9,76 +9,70 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=400;600;700&family=JetBrains+Mono:wght=500;700&display=swap');
 
+        /* --- GLOBAL THEME SCHEME DESIGN SYSTEM VARIABLES --- */
         :root {
-            --bg-dark: #020611;
-            --panel-bg: rgba(1, 4, 15, 0.92);
-            --border-glow: rgba(242, 90, 34, 0.2);
-            --text-main: #ffffff;
-            --text-muted: #7f91ad;
+            /* Branding colors remain fixed to preserve identity */
             --brand-blue: #012b5d;
             --brand-orange: #f25a22;
             --neon-danger: #ff0055;
             --font-main: 'Plus Jakarta Sans', sans-serif;
             --font-mono: 'JetBrains Mono', monospace;
+
+            /* NATIVE DYNAMIC SYSTEM AUTOSWITCH SCHEME REGISTRIES */
+            /* Defaulting to Premium Dark Mode Architecture Rules */
+            --bg-dark: #020611;
+            --panel-bg: rgba(1, 4, 15, 0.92);
+            --border-glow: rgba(242, 90, 34, 0.2);
+            --text-main: #ffffff;
+            --text-muted: #7f91ad;
+            --input-bg: rgba(1, 4, 15, 0.8);
+            --input-border: rgba(255, 255, 255, 0.07);
+            --card-sub-bg: rgba(0, 0, 0, 0.3);
+            --grid-line-color: rgba(1, 43, 93, 0.08);
+            --aside-bg: #010612;
+            --metric-box-bg: rgba(1, 43, 93, 0.15);
+        }
+
+        /* LIGHT MODE SYSTEM INTERCEPT WINDOW OVERRIDES */
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg-dark: #f4f7f6;
+                --panel-bg: rgba(255, 255, 255, 0.95);
+                --border-glow: rgba(1, 43, 93, 0.15);
+                --text-main: #0c1524;
+                --text-muted: #627285;
+                --input-bg: #ffffff;
+                --input-border: rgba(1, 43, 93, 0.12);
+                --card-sub-bg: rgba(1, 43, 93, 0.04);
+                --grid-line-color: rgba(1, 43, 93, 0.04);
+                --aside-bg: #ffffff;
+                --metric-box-bg: rgba(1, 43, 93, 0.06);
+            }
+            /* Map container contrast tune for light viewports */
+            #map { opacity: 1 !important; }
+            .hud-panel { box-shadow: 0 15px 40px rgba(1, 43, 93, 0.1); }
+            .title-logo, .brand-logo { color: var(--brand-blue) !important; }
         }
 
         body, html { 
             margin: 0; padding: 0; height: 100%; width: 100%; 
             font-family: var(--font-main); background: var(--bg-dark); 
             color: var(--text-main); overflow: hidden; 
+            transition: background 0.3s, color 0.3s;
         }
 
-        /* --- PAGE 1: TITLE SCREEN WITH ANIMATED TACTICAL HUD GRID --- */
-        #titlePage {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: radial-gradient(circle at center, #02122b 0%, #01040f 100%);
-            z-index: 9999; display: flex; flex-direction: column; align-items: center;
-            justify-content: center; text-align: center; transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        #titlePage.hidden { transform: translateY(-100vh); opacity: 0; pointer-events: none; }
-        
-        /* Cyber-Grid Canvas Overlay Layer */
-        #hudCanvas {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 1; pointer-events: none; opacity: 0.6;
-        }
-
-        .title-container { position: relative; z-index: 5; max-width: 700px; padding: 20px; display: flex; flex-direction: column; align-items: center; }
-        
-        /* Enforced Logo Optimization Metrics */
-        .splash-logo-img {
-            width: 300px; height: 300px; object-fit: contain; margin-bottom: 30px;
-            filter: drop-shadow(0 0 30px rgba(242, 90, 34, 0.35));
-            animation: tacticalPulse 4s ease-in-out infinite;
-        }
-        @keyframes tacticalPulse {
-            0% { transform: translateY(0px) scale(1); filter: drop-shadow(0 0 30px rgba(242, 90, 34, 0.35)); }
-            50% { transform: translateY(-8px) scale(1.02); filter: drop-shadow(0 0 45px rgba(1, 43, 93, 0.6)); }
-            100% { transform: translateY(0px) scale(1); filter: drop-shadow(0 0 30px rgba(242, 90, 34, 0.35)); }
-        }
-
-        .title-logo { font-size: 52px; font-weight: 700; letter-spacing: 8px; color: var(--text-main); text-shadow: 0 0 25px rgba(252,252,252,0.15); margin-bottom: 8px; }
-        .title-sub { font-size: 13px; color: var(--brand-orange); letter-spacing: 5px; text-transform: uppercase; font-weight: 700; margin-bottom: 45px; }
-        
-        .btn-enter {
-            background: rgba(1, 43, 93, 0.3); border: 2px solid var(--brand-orange); color: var(--text-main);
-            padding: 16px 50px; font-size: 13px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase;
-            border-radius: 30px; cursor: pointer; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            box-shadow: 0 0 20px rgba(242,90,34,0.15); display: flex; align-items: center; gap: 12px;
-        }
-        .btn-enter:hover { background: var(--brand-orange); color: #fff; box-shadow: 0 0 35px rgba(242,90,34,0.5); transform: scale(1.05); }
-
-        /* --- MAIN SYSTEM LAYOUT (PAGE 2) --- */
         .app-container { display: flex; height: 100vh; width: 100vw; flex-direction: column; }
         @media (min-width: 992px) { .app-container { flex-direction: row; } }
 
+        /* Left Navigation Sidebar with Embedded Metrics */
         aside {
-            width: 100%; background: #010612; border-bottom: 1px solid rgba(255,255,255,0.04); 
+            width: 100%; background: var(--aside-bg); border-bottom: 1px solid rgba(1, 43, 93, 0.06); 
             display: flex; flex-direction: column; padding: 16px; z-index: 2000; box-sizing: border-box; gap: 20px;
+            transition: background 0.3s;
         }
         @media (min-width: 992px) { 
             aside { 
-                width: 280px; height: 100vh; border-right: 1px solid rgba(255,255,255,0.04); border-bottom: none;
+                width: 280px; height: 100vh; border-right: 1px solid rgba(1, 43, 93, 0.06); border-bottom: none;
                 padding: 35px 20px; justify-content: flex-start; gap: 25px;
             } 
         }
@@ -89,7 +83,7 @@
         .brand-logo { font-size: 19px; font-weight: 700; letter-spacing: 1.5px; color: var(--text-main); line-height: 1.2; }
         .brand-sub { font-size: 8.5px; color: var(--brand-orange); letter-spacing: 2px; text-transform: uppercase; font-weight: 700; margin-top: 1px; }
 
-        .sidebar-metrics { background: rgba(1, 43, 93, 0.15); border: 1px solid rgba(242,90,34,0.1); border-radius: 10px; padding: 14px; font-family: var(--font-mono); font-size: 11px; }
+        .sidebar-metrics { background: var(--metric-box-bg); border: 1px solid var(--border-glow); border-radius: 10px; padding: 14px; font-family: var(--font-mono); font-size: 11px; transition: background 0.3s; }
         .metric-line { display: flex; justify-content: space-between; margin-bottom: 6px; }
         .metric-line:last-child { margin-bottom: 0; }
 
@@ -97,60 +91,93 @@
         @media (min-width: 992px) { .nav-list { flex-direction: column; gap: 12px; overflow-x: visible; } }
 
         .nav-item {
-            background: rgba(255, 255, 255, 0.01); border: 1px solid rgba(255,255,255,0.03); 
+            background: rgba(255, 255, 255, 0.01); border: 1px solid var(--input-border); 
             color: var(--text-muted); font-size: 11px; font-weight: 600; text-transform: uppercase;
             letter-spacing: 1px; padding: 14px; border-radius: 8px; cursor: pointer; 
             transition: all 0.2s; display: flex; align-items: center; gap: 12px; box-sizing: border-box; width: 100%;
         }
-        .nav-item:hover { background: rgba(1, 43, 93, 0.2); color: #fff; border-color: var(--brand-orange); }
+        .nav-item:hover { background: rgba(1, 43, 93, 0.1); color: var(--text-main); border-color: var(--brand-orange); }
         .nav-item.active { 
             background: linear-gradient(135deg, var(--brand-blue), #01183d); color: #fff; border-color: var(--brand-orange);
-            box-shadow: 0 4px 15px rgba(1, 43, 93, 0.4);
+            box-shadow: 0 4px 15px rgba(1, 43, 93, 0.3);
         }
 
-        .main-workspace { flex-grow: 1; position: relative; height: 100%; background: #010307; }
+        .main-workspace { flex-grow: 1; position: relative; height: 100%; background: var(--bg-dark); }
         #map { height: 100%; width: 100%; position: absolute; z-index: 1; transition: opacity 0.3s; }
 
-        /* --- PANELS CORE VIEW ENGINE --- */
+        /* Title Welcome Screen Panel Layout Frame */
+        #titlePage {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: radial-gradient(circle at center, var(--panel-bg) 0%, var(--bg-dark) 100%);
+            z-index: 9999; display: flex; flex-direction: column; align-items: center;
+            justify-content: center; text-align: center; transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        #titlePage.hidden { transform: translateY(-100vh); opacity: 0; pointer-events: none; }
+        #hudCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; opacity: 0.6; }
+        .title-container { position: relative; z-index: 5; max-width: 700px; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        
+        .splash-logo-img {
+            width: 300px; height: 300px; object-fit: contain; margin-bottom: 30px;
+            filter: drop-shadow(0 0 30px rgba(242, 90, 34, 0.25));
+            animation: tacticalPulse 4s ease-in-out infinite;
+        }
+        @keyframes tacticalPulse {
+            0% { transform: translateY(0px) scale(1); }
+            50% { transform: translateY(-8px) scale(1.02); }
+            100% { transform: translateY(0px) scale(1); }
+        }
+
+        .title-logo { font-size: 52px; font-weight: 700; letter-spacing: 8px; color: var(--text-main); margin-bottom: 8px; transition: color 0.3s; }
+        .title-sub { font-size: 13px; color: var(--brand-orange); letter-spacing: 5px; text-transform: uppercase; font-weight: 700; margin-bottom: 45px; }
+        
+        .btn-enter {
+            background: rgba(1, 43, 93, 0.1); border: 2px solid var(--brand-orange); color: var(--text-main);
+            padding: 16px 50px; font-size: 13px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase;
+            border-radius: 30px; cursor: pointer; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 0 20px rgba(242,90,34,0.1); display: flex; align-items: center; gap: 12px;
+        }
+        .btn-enter:hover { background: var(--brand-orange); color: #fff; box-shadow: 0 0 35px rgba(242,90,34,0.4); transform: scale(1.05); }
+
+        /* --- CONTROL SLIDING HUD VIEWS ENGINE --- */
         .hud-panel { 
             position: absolute; top: 15px; left: 15px; bottom: 15px; right: 15px;
             background: var(--panel-bg); backdrop-filter: blur(25px);
             border: 1px solid var(--border-glow); border-radius: 14px; z-index: 1000;
             padding: 30px; box-sizing: border-box; display: none; flex-direction: column;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.6); pointer-events: auto; overflow-y: auto;
+            pointer-events: auto; overflow-y: auto; transition: background 0.3s, border 0.3s;
         }
         
         #surveillancePage.active { display: flex; background: transparent; border: none; backdrop-filter: none; box-shadow: none; pointer-events: none; }
         #commandPage.active, #rescuePage.active, #weatherPage.active { display: flex; }
 
-        .panel-title { font-size: 18px; font-weight: 700; letter-spacing: 1px; margin-bottom: 25px; color: #fff; text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 12px;}
+        .panel-title { font-size: 18px; font-weight: 700; letter-spacing: 1px; margin-bottom: 25px; color: var(--text-main); text-transform: uppercase; border-bottom: 1px solid var(--input-border); padding-bottom: 12px; transition: color 0.3s; }
         .form-row { display: flex; gap: 15px; margin-bottom: 15px; }
         label { display: block; font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; font-weight: 600; }
         input { 
-            width: 100%; background: rgba(1, 4, 15, 0.8); border: 1px solid rgba(255,255,255,0.07); 
-            padding: 14px; color: #fff; border-radius: 8px; font-family: var(--font-mono); font-size: 13px; box-sizing: border-box;
+            width: 100%; background: var(--input-bg); border: 1px solid var(--input-border); 
+            padding: 14px; color: var(--text-main); border-radius: 8px; font-family: var(--font-mono); font-size: 13px; box-sizing: border-box; transition: background 0.3s, color 0.3s;
         }
-        input:focus { border-color: var(--brand-orange); outline: none; box-shadow: 0 0 10px rgba(242,90,34,0.15); }
+        input:focus { border-color: var(--brand-orange); outline: none; }
 
         .btn-dispatch { 
             width: 100%; background: linear-gradient(135deg, var(--brand-blue), #01183d); color: #fff; border: 1px solid var(--brand-orange); 
             padding: 16px; font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; border-radius: 8px; cursor: pointer; transition: all 0.2s;
         }
         .btn-dispatch:disabled { background: #0e121a; border-color: rgba(255,255,255,0.02); color: #2d3647; cursor: not-allowed; }
-        .btn-danger { width: 100%; background: rgba(255, 0, 85, 0.08); color: var(--neon-danger); border: 1px solid var(--neon-danger); padding: 14px; font-weight: 600; font-size: 12px; text-transform: uppercase; border-radius: 8px; cursor: pointer; margin-top: 15px; transition: all 0.2s; }
+        .btn-danger { width: 100%; background: rgba(255, 0, 85, 0.08); color: var(--neon-danger); border: 1px solid var(--neon-danger); padding: 14px; font-weight: 600; font-size: 12px; text-transform: uppercase; border-radius: 8px; cursor: pointer; margin-top: 15px; }
         .btn-danger:hover { background: var(--neon-danger); color: #fff; }
-        .btn-mute { width: 100%; background: rgba(242, 90, 34, 0.05); color: var(--brand-orange); border: 1px solid var(--brand-orange); padding: 14px; font-weight: 600; font-size: 12px; text-transform: uppercase; border-radius: 8px; cursor: pointer; margin-top: 15px; transition: all 0.2s; }
+        .btn-mute { width: 100%; background: rgba(242, 90, 34, 0.05); color: var(--brand-orange); border: 1px solid var(--brand-orange); padding: 14px; font-weight: 600; font-size: 12px; text-transform: uppercase; border-radius: 8px; cursor: pointer; margin-top: 15px; }
         .btn-mute:hover { background: var(--brand-orange); color: #fff; }
 
-        .status-badge { position: absolute; top: 15px; right: 15px; background: rgba(1, 6, 18, 0.93); backdrop-filter: blur(10px); padding: 12px 20px; border-radius: 30px; font-size: 11px; font-weight: 700; z-index: 1010; border: 1px solid var(--border-glow); font-family: var(--font-mono); letter-spacing: 0.5px; color: #fff; }
-        .overlay-card { position: absolute; bottom: 15px; left: 15px; background: rgba(1, 6, 18, 0.93); backdrop-filter: blur(10px); padding: 18px; border-radius: 12px; z-index: 1010; border-left: 4px solid var(--brand-orange); width: calc(100% - 30px); max-width: 290px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .status-badge { position: absolute; top: 15px; right: 15px; background: var(--panel-bg); backdrop-filter: blur(10px); padding: 12px 20px; border-radius: 30px; font-size: 11px; font-weight: 700; z-index: 1010; border: 1px solid var(--border-glow); font-family: var(--font-mono); letter-spacing: 0.5px; color: var(--text-main); transition: all 0.3s; }
+        .overlay-card { position: absolute; bottom: 15px; left: 15px; background: var(--panel-bg); backdrop-filter: blur(10px); padding: 18px; border-radius: 12px; z-index: 1010; border-left: 4px solid var(--brand-orange); width: calc(100% - 30px); max-width: 290px; color: var(--text-main); border-top: 1px solid var(--input-border); transition: all 0.3s; }
 
         .weather-display-box { max-width: 400px; }
         .weather-val { font-size: 42px; font-weight: 700; margin-top: 5px; color: var(--brand-orange); font-family: var(--font-mono); }
         .weather-sub-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; font-family: var(--font-mono); }
-        .sub-weather-box { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.04); border-radius: 10px; padding: 15px; }
+        .sub-weather-box { background: var(--card-sub-bg); border: 1px solid var(--input-border); border-radius: 10px; padding: 15px; transition: background 0.3s; }
 
-        .pulse-alarm { background: var(--neon-danger) !important; color: #fff !important; animation: flash 1s infinite; border-color: #ff6699 !important; box-shadow: 0 0 15px rgba(255,0,85,0.4); }
+        .pulse-alarm { background: var(--neon-danger) !important; color: #fff !important; animation: flash 1s infinite; border-color: #ff6699 !important; }
         @keyframes flash { 50% { opacity: 0.6; } }
 
         @media (max-width: 991px) {
@@ -162,7 +189,6 @@
 
 <div id="titlePage">
     <canvas id="hudCanvas"></canvas>
-    
     <div class="title-container">
         <img src="logo-splash.png" alt="NavRakhshak Master Logo" class="splash-logo-img">
         <div class="title-logo">NAVRAKHSHAK</div>
@@ -223,7 +249,7 @@
                     <input type="number" id="cmdBuf" placeholder="Buffer">
                 </div>
             </div>
-            <div style="border-top:1px solid rgba(255,255,255,0.06); padding-top:15px; margin-bottom:20px; max-width: 500px;">
+            <div style="border-top:1px solid var(--input-border); padding-top:15px; margin-bottom:20px; max-width: 500px;">
                 <label>Security Authentication PIN</label>
                 <input type="password" id="adminPin" placeholder="Master PIN (1234)" maxlength="4" oninput="checkAuth()">
             </div>
@@ -253,7 +279,7 @@
                 <div class="weather-sub-grid">
                     <div class="sub-weather-box">
                         <label>Wind Flow Profile</label>
-                        <div style="color:#fff; font-weight:700; font-size: 16px; margin-top:4px;" id="weatherWind">-- km/h</div>
+                        <div style="color:var(--text-main); font-weight:700; font-size: 16px; margin-top:4px;" id="weatherWind">-- km/h</div>
                     </div>
                     <div class="sub-weather-box">
                         <label>Storm Alert Index</label>
@@ -303,7 +329,7 @@
     document.getElementById('cmdRad').value = fenceRad;
     document.getElementById('cmdBuf').value = parseFloat(localStorage.getItem('fBuf')) || 10;
 
-    // --- ANIMATED TACTICAL SCREEN GRID MATRIX ENGINE ---
+    // --- ENHANCED DYNAMIC HUD GRID CANVAS RENDER VECTOR ENGINE ---
     const canvas = document.getElementById('hudCanvas');
     const ctx = canvas.getContext('2d');
     let satellites = [];
@@ -315,7 +341,6 @@
     window.addEventListener('resize', resizeCanvas);
     resizeCanvas();
 
-    // Generate orbiting radar node specs
     for (let i = 0; i < 4; i++) {
         satellites.push({
             x: Math.random() * canvas.width, y: Math.random() * canvas.height,
@@ -326,7 +351,9 @@
 
     function renderHudOverlay() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.strokeStyle = 'rgba(1, 43, 93, 0.08)';
+        
+        // Grab current dynamic system token value dynamically from CSS runtime calculations
+        ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--grid-line-color').trim();
         ctx.lineWidth = 1;
         
         let gridSize = 45;
@@ -337,7 +364,6 @@
             ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
         }
 
-        // Draw animated target scanner dots
         satellites.forEach(sat => {
             sat.x += sat.vx; sat.y += sat.vy;
             if (sat.x < 0 || sat.x > canvas.width) sat.vx *= -1;
@@ -346,16 +372,13 @@
             sat.pulse += 0.02;
             let currentRadius = sat.radius + Math.sin(sat.pulse) * 1.5;
 
-            // Core emitter element
             ctx.beginPath();
             ctx.arc(sat.x, sat.y, Math.max(1, currentRadius), 0, Math.PI * 2);
-            ctx.fillStyle = 'rgba(242, 90, 34, 0.4)';
+            ctx.fillStyle = 'rgba(242, 90, 34, 0.35)';
             ctx.fill();
 
-            // Tactical scan vector scanning grid lines
             ctx.beginPath();
             ctx.arc(sat.x, sat.y, sat.range * (0.3 + Math.abs(Math.sin(sat.pulse * 0.5)) * 0.7), 0, Math.PI * 2);
-            ctx.strokeStyle = 'rgba(1, 43, 93, 0.05)';
             ctx.stroke();
         });
 
@@ -446,7 +469,9 @@
                         
                         db.ref('config/syncCommand').set("WEATHER_ALERT");
                     } else {
-                        document.getElementById('weatherStorm').style.color = "var(--brand-orange)";
+                        // Dynamically update font color variable tokens based on active dynamic rules
+                        const computedOrange = getComputedStyle(document.documentElement).getPropertyValue('--brand-orange').trim();
+                        document.getElementById('weatherStorm').style.color = computedOrange;
                         if(document.getElementById('statusBadge').innerText.includes("WEATHER ALERT")) {
                              document.getElementById('statusBadge').innerText = "LINK: SECURE / SAFE";
                              document.getElementById('statusBadge').className = "status-badge";
