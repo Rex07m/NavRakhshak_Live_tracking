@@ -101,18 +101,30 @@
         .main-workspace { flex-grow: 1; position: relative; height: 100%; background: var(--bg-dark); }
         #map { height: 100%; width: 100%; position: absolute; z-index: 1; transition: opacity 0.3s; }
 
+        /* TITLE SPLASH PAGE MAIN ARCHITECTURE */
         #titlePage {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: radial-gradient(circle at center, var(--panel-bg) 0%, var(--bg-dark) 100%);
+            background: #020611;
             z-index: 9999; display: flex; flex-direction: column; align-items: center;
             justify-content: center; text-align: center; transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            overflow: hidden;
         }
         #titlePage.hidden { transform: translateY(-100vh); opacity: 0; pointer-events: none; }
-        #hudCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; opacity: 0.6; }
-        .title-container { position: relative; z-index: 5; max-width: 700px; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        
+        /* BACKGROUND WORLD MAP VIDEO ELEMENT */
+        .title-bg-video {
+            position: absolute; top: 50%; left: 50%;
+            min-width: 100%; min-height: 100%;
+            width: auto; height: auto;
+            transform: translate(-50%, -50%);
+            object-fit: cover; z-index: 1; opacity: 0.35;
+            pointer-events: none;
+        }
+
+        .title-container { position: relative; z-index: 5; max-width: 700px; padding: 30px; display: flex; flex-direction: column; align-items: center; background: rgba(2, 6, 17, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(1, 43, 93, 0.2); border-radius: 20px; }
         
         .splash-logo-img {
-            width: 300px; height: 300px; object-fit: contain; margin-bottom: 30px;
+            width: 200px; height: 200px; object-fit: contain; margin-bottom: 20px;
             filter: drop-shadow(0 0 30px rgba(242, 90, 34, 0.25));
             animation: tacticalPulse 4s ease-in-out infinite;
         }
@@ -123,8 +135,40 @@
         }
 
         .title-logo { font-size: 52px; font-weight: 700; letter-spacing: 8px; color: var(--text-main); margin-bottom: 8px; transition: color 0.3s; }
-        .title-sub { font-size: 13px; color: var(--brand-orange); letter-spacing: 5px; text-transform: uppercase; font-weight: 700; margin-bottom: 45px; }
+        .title-sub { font-size: 13px; color: var(--brand-orange); letter-spacing: 5px; text-transform: uppercase; font-weight: 700; margin-bottom: 30px; }
         
+        /* INTEGRATED SEARCH/SCANNING RADAR CONTAINER */
+        .search-anim-container {
+            position: relative; width: 100%; max-width: 320px; height: 48px; 
+            margin-bottom: 35px; background: rgba(255, 255, 255, 0.03); 
+            border: 1px solid rgba(242, 90, 34, 0.3); border-radius: 24px;
+            display: flex; align-items: center; padding: 0 20px; box-sizing: border-box;
+            overflow: hidden; gap: 12px;
+        }
+        .search-icon-spin {
+            font-size: 16px; color: var(--brand-orange);
+            animation: searchPulse 1.5s infinite ease-in-out;
+        }
+        .search-anim-text {
+            font-family: var(--font-mono); font-size: 11px; letter-spacing: 1px;
+            text-transform: uppercase; color: var(--text-muted);
+        }
+        /* Moving Scanning Sweep Line overlay */
+        .search-anim-container::after {
+            content: ''; position: absolute; top: 0; left: -50%; width: 30%; height: 100%;
+            background: linear-gradient(to right, transparent, rgba(242, 90, 34, 0.15), transparent);
+            transform: skewX(-25deg);
+            animation: scanningSweep 2.5s infinite linear;
+        }
+        @keyframes searchPulse {
+            0%, 100% { transform: scale(1); opacity: 0.7; }
+            50% { transform: scale(1.2); opacity: 1; }
+        }
+        @keyframes scanningSweep {
+            0% { left: -40%; }
+            100% { left: 140%; }
+        }
+
         .btn-enter {
             background: rgba(1, 43, 93, 0.1); border: 2px solid var(--brand-orange); color: var(--text-main);
             padding: 16px 50px; font-size: 13px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase;
@@ -182,11 +226,20 @@
 <body>
 
 <div id="titlePage">
-    <canvas id="hudCanvas"></canvas>
+    <video class="title-bg-video" autoplay loop muted playsinline>
+        <source src="45956-447087585_medium.mp4" type="video/mp4">
+    </video>
+    
     <div class="title-container">
         <img src="logo-splash.png" alt="NavRakhshak Master Logo" class="splash-logo-img">
         <div class="title-logo">NAVRAKHSHAK</div>
         <div class="title-sub">Tactical Operations Command Hub</div>
+        
+        <div class="search-anim-container">
+            <i class="fa-solid fa-magnifying-glass search-icon-spin"></i>
+            <span class="search-anim-text" id="loaderText">Scanning Node Streams...</span>
+        </div>
+
         <button class="btn-enter" onclick="initializeSystemView()"><i class="fa-solid fa-shield-halved"></i> Initialize System</button>
     </div>
 </div>
@@ -313,7 +366,6 @@
     var lastLat = 0, lastLon = 0;
 
     // --- MAPTILER SATELLITE HYBRID STREAM INTEGRATION ---
-    // Updated to use the target API Key parameter syntax format for raster tiles
     L.tileLayer('https://api.maptiler.com/maps/hybrid-v4/{z}/{x}/{y}.jpg?key=tbCji5PsF2IBPBis0LYU', {
         maxZoom: 20,
         crossOrigin: true
@@ -328,60 +380,16 @@
     document.getElementById('cmdRad').value = fenceRad;
     document.getElementById('cmdBuf').value = parseFloat(localStorage.getItem('fBuf')) || 10;
 
-    // --- HUD CANVAS OVERLAY GENERATOR ---
-    const canvas = document.getElementById('hudCanvas');
-    const ctx = canvas.getContext('2d');
-    let satellites = [];
-
-    function resizeCanvas() {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-    }
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
-
-    for (let i = 0; i < 4; i++) {
-        satellites.push({
-            x: Math.random() * canvas.width, y: Math.random() * canvas.height,
-            vx: (Math.random() - 0.5) * 0.8, vy: (Math.random() - 0.5) * 0.8,
-            radius: Math.random() * 3 + 2, range: Math.random() * 100 + 80, pulse: 0
-        });
-    }
-
-    function renderHudOverlay() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--grid-line-color').trim();
-        ctx.lineWidth = 1;
-        
-        let gridSize = 45;
-        for (let x = 0; x < canvas.width; x += gridSize) {
-            ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+    // Cycle descriptive text targets inside the Search Animation component element
+    const statusPhrases = ["Scanning Node Streams...", "Connecting Telemetry...", "Verifying Encryption...", "System Secure"];
+    let phraseIndex = 0;
+    setInterval(() => {
+        const txtNode = document.getElementById('loaderText');
+        if (txtNode) {
+            phraseIndex = (phraseIndex + 1) % statusPhrases.length;
+            txtNode.innerText = statusPhrases[phraseIndex];
         }
-        for (let y = 0; y < canvas.height; y += gridSize) {
-            ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
-        }
-
-        satellites.forEach(sat => {
-            sat.x += sat.vx; sat.y += sat.vy;
-            if (sat.x < 0 || sat.x > canvas.width) sat.vx *= -1;
-            if (sat.y < 0 || sat.y > canvas.height) sat.vy *= -1;
-
-            sat.pulse += 0.02;
-            let currentRadius = sat.radius + Math.sin(sat.pulse) * 1.5;
-
-            ctx.beginPath();
-            ctx.arc(sat.x, sat.y, Math.max(1, currentRadius), 0, Math.PI * 2);
-            ctx.fillStyle = 'rgba(242, 90, 34, 0.35)';
-            ctx.fill();
-
-            ctx.beginPath();
-            ctx.arc(sat.x, sat.y, sat.range * (0.3 + Math.abs(Math.sin(sat.pulse * 0.5)) * 0.7), 0, Math.PI * 2);
-            ctx.stroke();
-        });
-
-        requestAnimationFrame(renderHudOverlay);
-    }
-    renderHudOverlay();
+    }, 2500);
 
     function initializeSystemView() {
         document.getElementById('titlePage').classList.add('hidden');
