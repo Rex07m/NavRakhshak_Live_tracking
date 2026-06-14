@@ -193,7 +193,7 @@
         </div>
 
         <section id="mapPage" class="hud-panel active" style="display: none;">
-            </section>
+        </section>
 
         <section id="weatherSidebar" class="weather-panel">
             <div class="panel-title">METEOROLOGICAL SPEC</div>
@@ -339,6 +339,7 @@
         localStorage.setItem('fBuf', buf);
     }
 
+    // --- ACCURATE WMO CLIMATE EVALUATION LOGIC PIPELINE ---
     function fetchLocationWeather(lat, lon) {
         if (Date.now() - lastWeatherCheckTime < 60000) return;
         lastWeatherCheckTime = Date.now();
@@ -354,16 +355,25 @@
                     document.getElementById('weatherTemp').innerText = `${temp}°C`;
                     document.getElementById('weatherWind').innerText = `${windSpeed} km/h`;
                     
+                    // FIXED SENSITIVITY CRITERIA: 
+                    // Only flags a storm if wind speeds cross a critical 35 km/h threshold
+                    // OR if the weather code matches severe thunder/hail squalls (Codes 96-99).
+                    // Minor or standard local rain/thunderstorms (Code 95 or lower) are cleanly filtered out.
                     let stormStatus = "NORMAL";
-                    if (windSpeed > 25.0 || wCode >= 71) {
-                        stormStatus = "TYPHOON / STORM DETECTED";
+                    if (windSpeed > 35.0 || wCode >= 96) {
+                        stormStatus = "CRITICAL STORM DETECTED";
                         document.getElementById('weatherStorm').style.color = "var(--neon-danger)";
-                        document.getElementById('statusBadge').innerText = "WEATHER ALERT: SEVERE SQUALL";
+                        document.getElementById('statusBadge').innerText = "WEATHER ALERT: SEVERE GALES";
                         document.getElementById('statusBadge').className = "status-badge pulse-alarm";
                         
                         db.ref('config/syncCommand').set("WEATHER_ALERT");
                     } else {
                         document.getElementById('weatherStorm').style.color = "var(--neon-cyan)";
+                        // Reset badge if the alarm was previously activated by automatic weather rules
+                        if(document.getElementById('statusBadge').innerText.includes("WEATHER ALERT")) {
+                             document.getElementById('statusBadge').innerText = "LINK: SECURE / SAFE";
+                             document.getElementById('statusBadge').className = "status-badge";
+                        }
                     }
                     document.getElementById('weatherStorm').innerText = stormStatus;
                     document.getElementById('weatherDesc').innerText = `Weather Code Status Index Reference: ${wCode}`;
@@ -406,11 +416,18 @@
             document.getElementById('syncTime').innerText = `DIST TO EDGE: ${borderDist.toFixed(1)} m`;
             
             if (statusMsg.includes("SOS") || statusMsg.includes("ALERT") || data.isAlertActive === true) {
-                badge.className = 'status-badge pulse-alarm';
+                // Ensure we don't overwrite a high-priority weather alert message text if it triggered locally first
+                if (!badge.innerText.includes("WEATHER ALERT")) {
+                     badge.innerText = `ALARM: ${statusMsg}`;
+                     badge.className = 'status-badge pulse-alarm';
+                }
                 sosBtn.className = 'nav-item pulse-alarm';
                 boatIcon.setStyle({fillColor: '#ff0055'}); 
             } else {
-                badge.className = 'status-badge';
+                if (!badge.innerText.includes("WEATHER ALERT")) {
+                     badge.innerText = `LINK: SECURE / ${statusMsg}`;
+                     badge.className = 'status-badge';
+                }
                 sosBtn.className = 'nav-item';
                 boatIcon.setStyle({fillColor: '#0066ff'});
             }
