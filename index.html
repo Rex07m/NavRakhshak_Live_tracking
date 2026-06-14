@@ -9,7 +9,7 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=400;600;700&family=JetBrains+Mono:wght=500;700&display=swap');
 
-        /* --- GLOBAL THEME SCHEME DESIGN SYSTEM VARIABLES --- */
+        /* --- GLOBAL LIGHT THEME SCHEME DESIGN SYSTEM VARIABLES --- */
         :root {
             --brand-blue: #012b5d;
             --brand-orange: #f25a22;
@@ -17,58 +17,37 @@
             --font-main: 'Plus Jakarta Sans', sans-serif;
             --font-mono: 'JetBrains Mono', monospace;
 
-            /* Defaulting to Premium Dark Mode Architecture Rules */
-            --bg-dark: #020611;
-            --panel-bg: rgba(1, 4, 15, 0.92);
-            --border-glow: rgba(242, 90, 34, 0.2);
-            --text-main: #ffffff;
-            --text-muted: #7f91ad;
-            --input-bg: rgba(1, 4, 15, 0.8);
-            --input-border: rgba(255, 255, 255, 0.07);
-            --card-sub-bg: rgba(0, 0, 0, 0.3);
-            --grid-line-color: rgba(1, 43, 93, 0.08);
-            --aside-bg: #010612;
-            --metric-box-bg: rgba(1, 43, 93, 0.15);
-        }
-
-        /* LIGHT MODE SYSTEM INTERCEPT WINDOW OVERRIDES */
-        @media (prefers-color-scheme: light) {
-            :root {
-                --bg-dark: #f4f7f6;
-                --panel-bg: rgba(255, 255, 255, 0.95);
-                --border-glow: rgba(1, 43, 93, 0.15);
-                --text-main: #0c1524;
-                --text-muted: #627285;
-                --input-bg: #ffffff;
-                --input-border: rgba(1, 43, 93, 0.12);
-                --card-sub-bg: rgba(1, 43, 93, 0.06);
-                --grid-line-color: rgba(1, 43, 93, 0.04);
-                --aside-bg: #ffffff;
-                --metric-box-bg: rgba(1, 43, 93, 0.06);
-            }
-            #map { opacity: 1 !important; }
-            .hud-panel { box-shadow: 0 15px 40px rgba(1, 43, 93, 0.1); }
-            .title-logo, .brand-logo { color: var(--brand-blue) !important; }
+            /* Light Theme Specific Architecture Rules */
+            --bg-dark: #f4f7f6;
+            --panel-bg: rgba(255, 255, 255, 0.95);
+            --border-glow: rgba(1, 43, 93, 0.15);
+            --text-main: #0c1524;
+            --text-muted: #627285;
+            --input-bg: #ffffff;
+            --input-border: rgba(1, 43, 93, 0.12);
+            --card-sub-bg: rgba(1, 43, 93, 0.04);
+            --grid-line-color: rgba(1, 43, 93, 0.05);
+            --aside-bg: #ffffff;
+            --metric-box-bg: rgba(1, 43, 93, 0.06);
         }
 
         body, html { 
             margin: 0; padding: 0; height: 100%; width: 100%; 
             font-family: var(--font-main); background: var(--bg-dark); 
             color: var(--text-main); overflow: hidden; 
-            transition: background 0.3s, color 0.3s;
         }
 
         .app-container { display: flex; height: 100vh; width: 100vw; flex-direction: column; }
         @media (min-width: 992px) { .app-container { flex-direction: row; } }
 
+        /* Left Navigation Sidebar with Embedded Metrics */
         aside {
-            width: 100%; background: var(--aside-bg); border-bottom: 1px solid rgba(1, 43, 93, 0.06); 
+            width: 100%; background: var(--aside-bg); border-bottom: 1px solid rgba(1, 43, 93, 0.08); 
             display: flex; flex-direction: column; padding: 16px; z-index: 2000; box-sizing: border-box; gap: 20px;
-            transition: background 0.3s;
         }
         @media (min-width: 992px) { 
             aside { 
-                width: 280px; height: 100vh; border-right: 1px solid rgba(1, 43, 93, 0.06); border-bottom: none;
+                width: 280px; height: 100vh; border-right: 1px solid rgba(1, 43, 93, 0.08); border-bottom: none;
                 padding: 35px 20px; justify-content: flex-start; gap: 25px;
             } 
         }
@@ -76,10 +55,10 @@
         .brand { text-align: left; cursor: pointer; display: flex; align-items: center; gap: 12px; }
         .brand-logo-img { width: 44px; height: 44px; object-fit: contain; }
         .brand-text-group { display: flex; flex-direction: column; }
-        .brand-logo { font-size: 19px; font-weight: 700; letter-spacing: 1.5px; color: var(--text-main); line-height: 1.2; }
+        .brand-logo { font-size: 19px; font-weight: 700; letter-spacing: 1.5px; color: var(--brand-blue); line-height: 1.2; }
         .brand-sub { font-size: 8.5px; color: var(--brand-orange); letter-spacing: 2px; text-transform: uppercase; font-weight: 700; margin-top: 1px; }
 
-        .sidebar-metrics { background: var(--metric-box-bg); border: 1px solid var(--border-glow); border-radius: 10px; padding: 14px; font-family: var(--font-mono); font-size: 11px; transition: background 0.3s; }
+        .sidebar-metrics { background: var(--metric-box-bg); border: 1px solid var(--border-glow); border-radius: 10px; padding: 14px; font-family: var(--font-mono); font-size: 11px; }
         .metric-line { display: flex; justify-content: space-between; margin-bottom: 6px; }
         .metric-line:last-child { margin-bottom: 0; }
 
@@ -87,45 +66,45 @@
         @media (min-width: 992px) { .nav-list { flex-direction: column; gap: 12px; overflow-x: visible; } }
 
         .nav-item {
-            background: rgba(255, 255, 255, 0.01); border: 1px solid var(--input-border); 
+            background: rgba(0, 0, 0, 0.01); border: 1px solid var(--input-border); 
             color: var(--text-muted); font-size: 11px; font-weight: 600; text-transform: uppercase;
             letter-spacing: 1px; padding: 14px; border-radius: 8px; cursor: pointer; 
             transition: all 0.2s; display: flex; align-items: center; gap: 12px; box-sizing: border-box; width: 100%;
         }
-        .nav-item:hover { background: rgba(1, 43, 93, 0.1); color: var(--text-main); border-color: var(--brand-orange); }
+        .nav-item:hover { background: rgba(1, 43, 93, 0.05); color: var(--text-main); border-color: var(--brand-orange); }
         .nav-item.active { 
             background: linear-gradient(135deg, var(--brand-blue), #01183d); color: #fff; border-color: var(--brand-orange);
-            box-shadow: 0 4px 15px rgba(1, 43, 93, 0.3);
+            box-shadow: 0 4px 15px rgba(1, 43, 93, 0.25);
         }
 
         .main-workspace { flex-grow: 1; position: relative; height: 100%; background: var(--bg-dark); }
         #map { height: 100%; width: 100%; position: absolute; z-index: 1; transition: opacity 0.3s; }
 
-        /* TITLE SPLASH PAGE MAIN ARCHITECTURE */
+        /* TITLE SPLASH PAGE ARCHITECTURE */
         #titlePage {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: #020611;
+            background: #ffffff;
             z-index: 9999; display: flex; flex-direction: column; align-items: center;
             justify-content: center; text-align: center; transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
             overflow: hidden;
         }
         #titlePage.hidden { transform: translateY(-100vh); opacity: 0; pointer-events: none; }
         
-        /* BACKGROUND WORLD MAP VIDEO ELEMENT */
+        /* BACKGROUND WORLD MAP VIDEO ASSET LAYER */
         .title-bg-video {
             position: absolute; top: 50%; left: 50%;
             min-width: 100%; min-height: 100%;
             width: auto; height: auto;
             transform: translate(-50%, -50%);
-            object-fit: cover; z-index: 1; opacity: 0.35;
+            object-fit: cover; z-index: 1; opacity: 0.65;
             pointer-events: none;
         }
 
-        .title-container { position: relative; z-index: 5; max-width: 700px; padding: 30px; display: flex; flex-direction: column; align-items: center; background: rgba(2, 6, 17, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(1, 43, 93, 0.2); border-radius: 20px; }
+        .title-container { position: relative; z-index: 5; max-width: 700px; padding: 35px; display: flex; flex-direction: column; align-items: center; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(1, 43, 93, 0.15); border-radius: 20px; box-shadow: 0 20px 50px rgba(1, 43, 93, 0.1); }
         
         .splash-logo-img {
             width: 200px; height: 200px; object-fit: contain; margin-bottom: 20px;
-            filter: drop-shadow(0 0 30px rgba(242, 90, 34, 0.25));
+            filter: drop-shadow(0 10px 20px rgba(1, 43, 93, 0.15));
             animation: tacticalPulse 4s ease-in-out infinite;
         }
         @keyframes tacticalPulse {
@@ -134,14 +113,14 @@
             100% { transform: translateY(0px) scale(1); }
         }
 
-        .title-logo { font-size: 52px; font-weight: 700; letter-spacing: 8px; color: var(--text-main); margin-bottom: 8px; transition: color 0.3s; }
+        .title-logo { font-size: 52px; font-weight: 700; letter-spacing: 8px; color: var(--brand-blue); margin-bottom: 8px; }
         .title-sub { font-size: 13px; color: var(--brand-orange); letter-spacing: 5px; text-transform: uppercase; font-weight: 700; margin-bottom: 30px; }
         
-        /* INTEGRATED SEARCH/SCANNING RADAR CONTAINER */
+        /* SEARCH/SCANNING RADAR CONTAINER */
         .search-anim-container {
             position: relative; width: 100%; max-width: 320px; height: 48px; 
-            margin-bottom: 35px; background: rgba(255, 255, 255, 0.03); 
-            border: 1px solid rgba(242, 90, 34, 0.3); border-radius: 24px;
+            margin-bottom: 35px; background: rgba(1, 43, 93, 0.04); 
+            border: 1px solid rgba(242, 90, 34, 0.25); border-radius: 24px;
             display: flex; align-items: center; padding: 0 20px; box-sizing: border-box;
             overflow: hidden; gap: 12px;
         }
@@ -151,17 +130,16 @@
         }
         .search-anim-text {
             font-family: var(--font-mono); font-size: 11px; letter-spacing: 1px;
-            text-transform: uppercase; color: var(--text-muted);
+            text-transform: uppercase; color: var(--brand-blue); font-weight: 600;
         }
-        /* Moving Scanning Sweep Line overlay */
         .search-anim-container::after {
             content: ''; position: absolute; top: 0; left: -50%; width: 30%; height: 100%;
-            background: linear-gradient(to right, transparent, rgba(242, 90, 34, 0.15), transparent);
+            background: linear-gradient(to right, transparent, rgba(242, 90, 34, 0.2), transparent);
             transform: skewX(-25deg);
             animation: scanningSweep 2.5s infinite linear;
         }
         @keyframes searchPulse {
-            0%, 100% { transform: scale(1); opacity: 0.7; }
+            0%, 100% { transform: scale(1); opacity: 0.8; }
             50% { transform: scale(1.2); opacity: 1; }
         }
         @keyframes scanningSweep {
@@ -170,52 +148,53 @@
         }
 
         .btn-enter {
-            background: rgba(1, 43, 93, 0.1); border: 2px solid var(--brand-orange); color: var(--text-main);
+            background: #ffffff; border: 2px solid var(--brand-orange); color: var(--brand-blue);
             padding: 16px 50px; font-size: 13px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase;
             border-radius: 30px; cursor: pointer; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            box-shadow: 0 0 20px rgba(242,90,34,0.1); display: flex; align-items: center; gap: 12px;
+            box-shadow: 0 4px 15px rgba(242,90,34,0.15); display: flex; align-items: center; gap: 12px;
         }
-        .btn-enter:hover { background: var(--brand-orange); color: #fff; box-shadow: 0 0 35px rgba(242,90,34,0.4); transform: scale(1.05); }
+        .btn-enter:hover { background: var(--brand-orange); color: #fff; box-shadow: 0 10px 25px rgba(242,90,34,0.35); transform: scale(1.04); }
 
+        /* CONTROL SLIDING HUD VIEWS ENGINE */
         .hud-panel { 
             position: absolute; top: 15px; left: 15px; bottom: 15px; right: 15px;
             background: var(--panel-bg); backdrop-filter: blur(25px);
             border: 1px solid var(--border-glow); border-radius: 14px; z-index: 1000;
             padding: 30px; box-sizing: border-box; display: none; flex-direction: column;
-            pointer-events: auto; overflow-y: auto; transition: background 0.3s, border 0.3s;
+            pointer-events: auto; overflow-y: auto; box-shadow: 0 15px 40px rgba(1, 43, 93, 0.08);
         }
         
         #surveillancePage.active { display: flex; background: transparent; border: none; backdrop-filter: none; box-shadow: none; pointer-events: none; }
         #commandPage.active, #rescuePage.active, #weatherPage.active { display: flex; }
 
-        .panel-title { font-size: 18px; font-weight: 700; letter-spacing: 1px; margin-bottom: 25px; color: var(--text-main); text-transform: uppercase; border-bottom: 1px solid var(--input-border); padding-bottom: 12px; transition: color 0.3s; }
+        .panel-title { font-size: 18px; font-weight: 700; letter-spacing: 1px; margin-bottom: 25px; color: var(--brand-blue); text-transform: uppercase; border-bottom: 1px solid var(--input-border); padding-bottom: 12px; }
         .form-row { display: flex; gap: 15px; margin-bottom: 15px; }
         label { display: block; font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; font-weight: 600; }
         input { 
             width: 100%; background: var(--input-bg); border: 1px solid var(--input-border); 
-            padding: 14px; color: var(--text-main); border-radius: 8px; font-family: var(--font-mono); font-size: 13px; box-sizing: border-box; transition: background 0.3s, color 0.3s;
+            padding: 14px; color: var(--text-main); border-radius: 8px; font-family: var(--font-mono); font-size: 13px; box-sizing: border-box;
         }
-        input:focus { border-color: var(--brand-orange); outline: none; }
+        input:focus { border-color: var(--brand-orange); outline: none; box-shadow: 0 0 10px rgba(242,90,34,0.08); }
 
         .btn-dispatch { 
             width: 100%; background: linear-gradient(135deg, var(--brand-blue), #01183d); color: #fff; border: 1px solid var(--brand-orange); 
             padding: 16px; font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; border-radius: 8px; cursor: pointer; transition: all 0.2s;
         }
-        .btn-dispatch:disabled { background: #0e121a; border-color: rgba(255,255,255,0.02); color: #2d3647; cursor: not-allowed; }
-        .btn-danger { width: 100%; background: rgba(255, 0, 85, 0.08); color: var(--neon-danger); border: 1px solid var(--neon-danger); padding: 14px; font-weight: 600; font-size: 12px; text-transform: uppercase; border-radius: 8px; cursor: pointer; margin-top: 15px; }
+        .btn-dispatch:disabled { background: #e4e8eb; border-color: rgba(0,0,0,0.05); color: #a1b0be; cursor: not-allowed; }
+        .btn-danger { width: 100%; background: rgba(255, 0, 85, 0.05); color: var(--neon-danger); border: 1px solid var(--neon-danger); padding: 14px; font-weight: 600; font-size: 12px; text-transform: uppercase; border-radius: 8px; cursor: pointer; margin-top: 15px; }
         .btn-danger:hover { background: var(--neon-danger); color: #fff; }
-        .btn-mute { width: 100%; background: rgba(242, 90, 34, 0.05); color: var(--brand-orange); border: 1px solid var(--brand-orange); padding: 14px; font-weight: 600; font-size: 12px; text-transform: uppercase; border-radius: 8px; cursor: pointer; margin-top: 15px; transition: all 0.2s; }
+        .btn-mute { width: 100%; background: rgba(242, 90, 34, 0.05); color: var(--brand-orange); border: 1px solid var(--brand-orange); padding: 14px; font-weight: 600; font-size: 12px; text-transform: uppercase; border-radius: 8px; cursor: pointer; margin-top: 15px; }
         .btn-mute:hover { background: var(--brand-orange); color: #fff; }
 
-        .status-badge { position: absolute; top: 15px; right: 15px; background: var(--panel-bg); backdrop-filter: blur(10px); padding: 12px 20px; border-radius: 30px; font-size: 11px; font-weight: 700; z-index: 1010; border: 1px solid var(--border-glow); font-family: var(--font-mono); letter-spacing: 0.5px; color: var(--text-main); transition: all 0.3s; }
-        .overlay-card { position: absolute; bottom: 15px; left: 15px; background: var(--panel-bg); backdrop-filter: blur(10px); padding: 18px; border-radius: 12px; z-index: 1010; border-left: 4px solid var(--brand-orange); width: calc(100% - 30px); max-width: 290px; color: var(--text-main); border-top: 1px solid var(--input-border); transition: all 0.3s; }
+        .status-badge { position: absolute; top: 15px; right: 15px; background: var(--panel-bg); backdrop-filter: blur(10px); padding: 12px 20px; border-radius: 30px; font-size: 11px; font-weight: 700; z-index: 1010; border: 1px solid var(--border-glow); font-family: var(--font-mono); letter-spacing: 0.5px; color: var(--brand-blue); box-shadow: 0 4px 15px rgba(1, 43, 93, 0.06); }
+        .overlay-card { position: absolute; bottom: 15px; left: 15px; background: var(--panel-bg); backdrop-filter: blur(10px); padding: 18px; border-radius: 12px; z-index: 1010; border-left: 4px solid var(--brand-orange); width: calc(100% - 30px); max-width: 290px; color: var(--text-main); border-top: 1px solid var(--input-border); box-shadow: 0 10px 30px rgba(1, 43, 93, 0.06); }
 
         .weather-display-box { max-width: 400px; }
         .weather-val { font-size: 42px; font-weight: 700; margin-top: 5px; color: var(--brand-orange); font-family: var(--font-mono); }
         .weather-sub-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; font-family: var(--font-mono); }
-        .sub-weather-box { background: var(--card-sub-bg); border: 1px solid var(--input-border); border-radius: 10px; padding: 15px; transition: background 0.3s; }
+        .sub-weather-box { background: var(--card-sub-bg); border: 1px solid var(--input-border); border-radius: 10px; padding: 15px; }
 
-        .pulse-alarm { background: var(--neon-danger) !important; color: #fff !important; animation: flash 1s infinite; border-color: #ff6699 !important; }
+        .pulse-alarm { background: var(--neon-danger) !important; color: #fff !important; animation: flash 1s infinite; border-color: #ff6699 !important; box-shadow: 0 4px 15px rgba(255,0,85,0.2); }
         @keyframes flash { 50% { opacity: 0.6; } }
 
         @media (max-width: 991px) {
@@ -255,8 +234,8 @@
         </div>
 
         <div class="sidebar-metrics">
-            <div class="metric-line"><span>Vessel Node:</span><span id="srvStatus" style="color:var(--brand-orange)">ACTIVE</span></div>
-            <div class="metric-line"><span>Cloud Pipe:</span><span style="color:#00ff88">ONLINE</span></div>
+            <div class="metric-line"><span>Vessel Node:</span><span id="srvStatus" style="color:var(--brand-orange); font-weight: 700;">ACTIVE</span></div>
+            <div class="metric-line"><span>Cloud Pipe:</span><span style="color:#00aa50; font-weight: 700;">ONLINE</span></div>
         </div>
 
         <nav class="nav-list">
@@ -365,7 +344,6 @@
     var map = L.map('map', {zoomControl: false, attributionControl: false}).setView([fenceLat, fenceLon], 15);
     var lastLat = 0, lastLon = 0;
 
-    // --- MAPTILER SATELLITE HYBRID STREAM INTEGRATION ---
     L.tileLayer('https://api.maptiler.com/maps/hybrid-v4/{z}/{x}/{y}.jpg?key=tbCji5PsF2IBPBis0LYU', {
         maxZoom: 20,
         crossOrigin: true
@@ -380,7 +358,6 @@
     document.getElementById('cmdRad').value = fenceRad;
     document.getElementById('cmdBuf').value = parseFloat(localStorage.getItem('fBuf')) || 10;
 
-    // Cycle descriptive text targets inside the Search Animation component element
     const statusPhrases = ["Scanning Node Streams...", "Connecting Telemetry...", "Verifying Encryption...", "System Secure"];
     let phraseIndex = 0;
     setInterval(() => {
@@ -416,7 +393,7 @@
             badge.style.display = "block";
             overlay.style.display = "block";
         } else {
-            mapLayer.style.opacity = "0.12"; 
+            mapLayer.style.opacity = "0.25"; 
             badge.style.display = "none";
             overlay.style.display = "none";
         }
@@ -474,8 +451,7 @@
                         
                         db.ref('config/syncCommand').set("WEATHER_ALERT");
                     } else {
-                        const computedOrange = getComputedStyle(document.documentElement).getPropertyValue('--brand-orange').trim();
-                        document.getElementById('weatherStorm').style.color = computedOrange;
+                        document.getElementById('weatherStorm').style.color = "var(--brand-orange)";
                         if(document.getElementById('statusBadge').innerText.includes("WEATHER ALERT")) {
                              document.getElementById('statusBadge').innerText = "LINK: SECURE / SAFE";
                              document.getElementById('statusBadge').className = "status-badge";
