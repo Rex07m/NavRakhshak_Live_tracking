@@ -11,14 +11,12 @@
 
         /* --- GLOBAL THEME SCHEME DESIGN SYSTEM VARIABLES --- */
         :root {
-            /* Branding colors remain fixed to preserve identity */
             --brand-blue: #012b5d;
             --brand-orange: #f25a22;
             --neon-danger: #ff0055;
             --font-main: 'Plus Jakarta Sans', sans-serif;
             --font-mono: 'JetBrains Mono', monospace;
 
-            /* NATIVE DYNAMIC SYSTEM AUTOSWITCH SCHEME REGISTRIES */
             /* Defaulting to Premium Dark Mode Architecture Rules */
             --bg-dark: #020611;
             --panel-bg: rgba(1, 4, 15, 0.92);
@@ -43,12 +41,11 @@
                 --text-muted: #627285;
                 --input-bg: #ffffff;
                 --input-border: rgba(1, 43, 93, 0.12);
-                --card-sub-bg: rgba(1, 43, 93, 0.04);
+                --card-sub-bg: rgba(1, 43, 93, 0.06);
                 --grid-line-color: rgba(1, 43, 93, 0.04);
                 --aside-bg: #ffffff;
                 --metric-box-bg: rgba(1, 43, 93, 0.06);
             }
-            /* Map container contrast tune for light viewports */
             #map { opacity: 1 !important; }
             .hud-panel { box-shadow: 0 15px 40px rgba(1, 43, 93, 0.1); }
             .title-logo, .brand-logo { color: var(--brand-blue) !important; }
@@ -64,7 +61,6 @@
         .app-container { display: flex; height: 100vh; width: 100vw; flex-direction: column; }
         @media (min-width: 992px) { .app-container { flex-direction: row; } }
 
-        /* Left Navigation Sidebar with Embedded Metrics */
         aside {
             width: 100%; background: var(--aside-bg); border-bottom: 1px solid rgba(1, 43, 93, 0.06); 
             display: flex; flex-direction: column; padding: 16px; z-index: 2000; box-sizing: border-box; gap: 20px;
@@ -105,7 +101,6 @@
         .main-workspace { flex-grow: 1; position: relative; height: 100%; background: var(--bg-dark); }
         #map { height: 100%; width: 100%; position: absolute; z-index: 1; transition: opacity 0.3s; }
 
-        /* Title Welcome Screen Panel Layout Frame */
         #titlePage {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background: radial-gradient(circle at center, var(--panel-bg) 0%, var(--bg-dark) 100%);
@@ -138,7 +133,6 @@
         }
         .btn-enter:hover { background: var(--brand-orange); color: #fff; box-shadow: 0 0 35px rgba(242,90,34,0.4); transform: scale(1.05); }
 
-        /* --- CONTROL SLIDING HUD VIEWS ENGINE --- */
         .hud-panel { 
             position: absolute; top: 15px; left: 15px; bottom: 15px; right: 15px;
             background: var(--panel-bg); backdrop-filter: blur(25px);
@@ -166,7 +160,7 @@
         .btn-dispatch:disabled { background: #0e121a; border-color: rgba(255,255,255,0.02); color: #2d3647; cursor: not-allowed; }
         .btn-danger { width: 100%; background: rgba(255, 0, 85, 0.08); color: var(--neon-danger); border: 1px solid var(--neon-danger); padding: 14px; font-weight: 600; font-size: 12px; text-transform: uppercase; border-radius: 8px; cursor: pointer; margin-top: 15px; }
         .btn-danger:hover { background: var(--neon-danger); color: #fff; }
-        .btn-mute { width: 100%; background: rgba(242, 90, 34, 0.05); color: var(--brand-orange); border: 1px solid var(--brand-orange); padding: 14px; font-weight: 600; font-size: 12px; text-transform: uppercase; border-radius: 8px; cursor: pointer; margin-top: 15px; }
+        .btn-mute { width: 100%; background: rgba(242, 90, 34, 0.05); color: var(--brand-orange); border: 1px solid var(--brand-orange); padding: 14px; font-weight: 600; font-size: 12px; text-transform: uppercase; border-radius: 8px; cursor: pointer; margin-top: 15px; transition: all 0.2s; }
         .btn-mute:hover { background: var(--brand-orange); color: #fff; }
 
         .status-badge { position: absolute; top: 15px; right: 15px; background: var(--panel-bg); backdrop-filter: blur(10px); padding: 12px 20px; border-radius: 30px; font-size: 11px; font-weight: 700; z-index: 1010; border: 1px solid var(--border-glow); font-family: var(--font-mono); letter-spacing: 0.5px; color: var(--text-main); transition: all 0.3s; }
@@ -318,7 +312,12 @@
     var map = L.map('map', {zoomControl: false, attributionControl: false}).setView([fenceLat, fenceLon], 15);
     var lastLat = 0, lastLon = 0;
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 20 }).addTo(map);
+    // --- CRITICAL MAPTILER INTEGRATION FIX LINK ---
+    // Embedded your personal Satellite Hybrid tracking URL endpoint with authorization tokens intact
+    L.tileLayer('https://api.maptiler.com/maps/hybrid-v4/{z}/{x}/{y}.jpg?key=tbCji5PsF2IBPBis0LYU', {
+        maxZoom: 20,
+        crossOrigin: true
+    }).addTo(map);
 
     var boatPath = L.polyline([], {color: '#f25a22', weight: 4, opacity: 0.8, dashArray: '5, 10'}).addTo(map);
     var boatIcon = L.circleMarker([fenceLat, fenceLon], { radius: 8, color: '#fff', fillColor: '#012b5d', fillOpacity: 1, weight: 3 }).addTo(map);
@@ -329,7 +328,7 @@
     document.getElementById('cmdRad').value = fenceRad;
     document.getElementById('cmdBuf').value = parseFloat(localStorage.getItem('fBuf')) || 10;
 
-    // --- ENHANCED DYNAMIC HUD GRID CANVAS RENDER VECTOR ENGINE ---
+    // --- HUD GRID BACKGROUND INTERACTION ENGINE ---
     const canvas = document.getElementById('hudCanvas');
     const ctx = canvas.getContext('2d');
     let satellites = [];
@@ -351,8 +350,6 @@
 
     function renderHudOverlay() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        // Grab current dynamic system token value dynamically from CSS runtime calculations
         ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--grid-line-color').trim();
         ctx.lineWidth = 1;
         
@@ -469,7 +466,6 @@
                         
                         db.ref('config/syncCommand').set("WEATHER_ALERT");
                     } else {
-                        // Dynamically update font color variable tokens based on active dynamic rules
                         const computedOrange = getComputedStyle(document.documentElement).getPropertyValue('--brand-orange').trim();
                         document.getElementById('weatherStorm').style.color = computedOrange;
                         if(document.getElementById('statusBadge').innerText.includes("WEATHER ALERT")) {
