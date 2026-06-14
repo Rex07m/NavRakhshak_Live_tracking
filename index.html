@@ -10,13 +10,13 @@
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=400;600;700&family=JetBrains+Mono:wght=500;700&display=swap');
 
         :root {
-            --bg-dark: #05070c;
-            --panel-bg: rgba(11, 15, 26, 0.9);
-            --border-glow: rgba(0, 240, 255, 0.12);
-            --text-main: #f3f6fa;
-            --text-muted: #5c6e85;
-            --neon-cyan: #00f0ff;
-            --neon-blue: #0066ff;
+            --bg-dark: #020611;
+            --panel-bg: rgba(1, 4, 15, 0.92);
+            --border-glow: rgba(242, 90, 34, 0.2);
+            --text-main: #ffffff;
+            --text-muted: #7f91ad;
+            --brand-blue: #012b5d;
+            --brand-orange: #f25a22;
             --neon-danger: #ff0055;
             --font-main: 'Plus Jakarta Sans', sans-serif;
             --font-mono: 'JetBrains Mono', monospace;
@@ -28,122 +28,129 @@
             color: var(--text-main); overflow: hidden; 
         }
 
-        /* --- PAGE 1: TITLE/WELCOME SPLASH PAGE --- */
+        /* --- PAGE 1: TITLE SCREEN WITH ANIMATED TACTICAL HUD GRID --- */
         #titlePage {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: radial-gradient(circle at center, #0a1128 0%, #03050a 100%);
+            background: radial-gradient(circle at center, #02122b 0%, #01040f 100%);
             z-index: 9999; display: flex; flex-direction: column; align-items: center;
-            justify-content: center; text-align: center; transition: all 0.5s ease-in-out;
+            justify-content: center; text-align: center; transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
         }
         #titlePage.hidden { transform: translateY(-100vh); opacity: 0; pointer-events: none; }
         
-        .title-container { max-width: 600px; padding: 20px; display: flex; flex-direction: column; align-items: center; }
-        
-        /* Main Splash Emblem */
-        .splash-logo-img {
-            width: 180px; height: 180px; object-fit: contain; margin-bottom: 25px;
-            filter: drop-shadow(0 0 20px rgba(0, 240, 255, 0.2));
-            animation: floating 3s ease-in-out infinite;
-        }
-        @keyframes floating {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-            100% { transform: translateY(0px); }
+        /* Cyber-Grid Canvas Overlay Layer */
+        #hudCanvas {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 1; pointer-events: none; opacity: 0.6;
         }
 
-        .title-logo { font-size: 44px; font-weight: 700; letter-spacing: 6px; color: #fff; text-shadow: 0 0 20px rgba(0,240,255,0.2); margin-bottom: 5px; }
-        .title-sub { font-size: 13px; color: var(--neon-cyan); letter-spacing: 4px; text-transform: uppercase; font-weight: 600; margin-bottom: 40px; }
+        .title-container { position: relative; z-index: 5; max-width: 700px; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        
+        /* Enforced Logo Optimization Metrics */
+        .splash-logo-img {
+            width: 300px; height: 300px; object-fit: contain; margin-bottom: 30px;
+            filter: drop-shadow(0 0 30px rgba(242, 90, 34, 0.35));
+            animation: tacticalPulse 4s ease-in-out infinite;
+        }
+        @keyframes tacticalPulse {
+            0% { transform: translateY(0px) scale(1); filter: drop-shadow(0 0 30px rgba(242, 90, 34, 0.35)); }
+            50% { transform: translateY(-8px) scale(1.02); filter: drop-shadow(0 0 45px rgba(1, 43, 93, 0.6)); }
+            100% { transform: translateY(0px) scale(1); filter: drop-shadow(0 0 30px rgba(242, 90, 34, 0.35)); }
+        }
+
+        .title-logo { font-size: 52px; font-weight: 700; letter-spacing: 8px; color: var(--text-main); text-shadow: 0 0 25px rgba(252,252,252,0.15); margin-bottom: 8px; }
+        .title-sub { font-size: 13px; color: var(--brand-orange); letter-spacing: 5px; text-transform: uppercase; font-weight: 700; margin-bottom: 45px; }
         
         .btn-enter {
-            background: transparent; border: 1px solid var(--neon-cyan); color: var(--neon-cyan);
-            padding: 15px 40px; font-size: 14px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
-            border-radius: 30px; cursor: pointer; transition: all 0.3s; box-shadow: 0 0 15px rgba(0,240,255,0.1);
+            background: rgba(1, 43, 93, 0.3); border: 2px solid var(--brand-orange); color: var(--text-main);
+            padding: 16px 50px; font-size: 13px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase;
+            border-radius: 30px; cursor: pointer; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 0 20px rgba(242,90,34,0.15); display: flex; align-items: center; gap: 12px;
         }
-        .btn-enter:hover { background: var(--neon-cyan); color: #000; box-shadow: 0 0 25px rgba(0,240,255,0.4); }
+        .btn-enter:hover { background: var(--brand-orange); color: #fff; box-shadow: 0 0 35px rgba(242,90,34,0.5); transform: scale(1.05); }
 
         /* --- MAIN SYSTEM LAYOUT (PAGE 2) --- */
         .app-container { display: flex; height: 100vh; width: 100vw; flex-direction: column; }
         @media (min-width: 992px) { .app-container { flex-direction: row; } }
 
         aside {
-            width: 100%; background: #080b12; border-bottom: 1px solid rgba(255,255,255,0.04); 
+            width: 100%; background: #010612; border-bottom: 1px solid rgba(255,255,255,0.04); 
             display: flex; flex-direction: column; padding: 16px; z-index: 2000; box-sizing: border-box; gap: 20px;
         }
         @media (min-width: 992px) { 
             aside { 
-                width: 260px; height: 100vh; border-right: 1px solid rgba(255,255,255,0.04); border-bottom: none;
+                width: 280px; height: 100vh; border-right: 1px solid rgba(255,255,255,0.04); border-bottom: none;
                 padding: 35px 20px; justify-content: flex-start; gap: 25px;
             } 
         }
 
-        /* Sidebar Brand Layout with Logo */
         .brand { text-align: left; cursor: pointer; display: flex; align-items: center; gap: 12px; }
-        .brand-logo-img { width: 42px; height: 42px; object-fit: contain; border-radius: 6px; }
+        .brand-logo-img { width: 44px; height: 44px; object-fit: contain; }
         .brand-text-group { display: flex; flex-direction: column; }
-        .brand-logo { font-size: 18px; font-weight: 700; letter-spacing: 1.5px; color: #fff; line-height: 1.2; }
-        .brand-sub { font-size: 8.5px; color: var(--neon-cyan); letter-spacing: 2px; text-transform: uppercase; font-weight: 600; margin-top: 1px; }
+        .brand-logo { font-size: 19px; font-weight: 700; letter-spacing: 1.5px; color: var(--text-main); line-height: 1.2; }
+        .brand-sub { font-size: 8.5px; color: var(--brand-orange); letter-spacing: 2px; text-transform: uppercase; font-weight: 700; margin-top: 1px; }
 
-        .sidebar-metrics { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.03); border-radius: 10px; padding: 12px; font-family: var(--font-mono); font-size: 11px; }
+        .sidebar-metrics { background: rgba(1, 43, 93, 0.15); border: 1px solid rgba(242,90,34,0.1); border-radius: 10px; padding: 14px; font-family: var(--font-mono); font-size: 11px; }
         .metric-line { display: flex; justify-content: space-between; margin-bottom: 6px; }
+        .metric-line:last-child { margin-bottom: 0; }
 
         .nav-list { display: flex; flex-direction: row; gap: 6px; width: 100%; overflow-x: auto; }
         @media (min-width: 992px) { .nav-list { flex-direction: column; gap: 12px; overflow-x: visible; } }
 
         .nav-item {
-            background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255,255,255,0.04); 
+            background: rgba(255, 255, 255, 0.01); border: 1px solid rgba(255,255,255,0.03); 
             color: var(--text-muted); font-size: 11px; font-weight: 600; text-transform: uppercase;
-            letter-spacing: 1px; padding: 12px 14px; border-radius: 8px; cursor: pointer; 
-            transition: all 0.2s; display: flex; align-items: center; gap: 10px; white-space: nowrap; width: 100%; box-sizing: border-box;
+            letter-spacing: 1px; padding: 14px; border-radius: 8px; cursor: pointer; 
+            transition: all 0.2s; display: flex; align-items: center; gap: 12px; box-sizing: border-box; width: 100%;
         }
-        .nav-item:hover { background: rgba(0, 102, 255, 0.08); color: #fff; border-color: var(--neon-blue); }
+        .nav-item:hover { background: rgba(1, 43, 93, 0.2); color: #fff; border-color: var(--brand-orange); }
         .nav-item.active { 
-            background: linear-gradient(135deg, var(--neon-blue), #0044ff); color: #fff; border-color: var(--neon-cyan);
-            box-shadow: 0 4px 15px rgba(0, 102, 255, 0.3);
+            background: linear-gradient(135deg, var(--brand-blue), #01183d); color: #fff; border-color: var(--brand-orange);
+            box-shadow: 0 4px 15px rgba(1, 43, 93, 0.4);
         }
 
-        .main-workspace { flex-grow: 1; position: relative; height: 100%; background: #030407; }
+        .main-workspace { flex-grow: 1; position: relative; height: 100%; background: #010307; }
         #map { height: 100%; width: 100%; position: absolute; z-index: 1; transition: opacity 0.3s; }
 
-        /* --- PANELS VIEW ENGINE --- */
+        /* --- PANELS CORE VIEW ENGINE --- */
         .hud-panel { 
             position: absolute; top: 15px; left: 15px; bottom: 15px; right: 15px;
-            background: var(--panel-bg); backdrop-filter: blur(20px);
+            background: var(--panel-bg); backdrop-filter: blur(25px);
             border: 1px solid var(--border-glow); border-radius: 14px; z-index: 1000;
             padding: 30px; box-sizing: border-box; display: none; flex-direction: column;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.5); pointer-events: auto; overflow-y: auto;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.6); pointer-events: auto; overflow-y: auto;
         }
         
         #surveillancePage.active { display: flex; background: transparent; border: none; backdrop-filter: none; box-shadow: none; pointer-events: none; }
         #commandPage.active, #rescuePage.active, #weatherPage.active { display: flex; }
 
-        .panel-title { font-size: 18px; font-weight: 700; letter-spacing: 1px; margin-bottom: 25px; color: #fff; text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 12px;}
+        .panel-title { font-size: 18px; font-weight: 700; letter-spacing: 1px; margin-bottom: 25px; color: #fff; text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 12px;}
         .form-row { display: flex; gap: 15px; margin-bottom: 15px; }
         label { display: block; font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; font-weight: 600; }
         input { 
-            width: 100%; background: rgba(3, 5, 10, 0.7); border: 1px solid rgba(255,255,255,0.06); 
+            width: 100%; background: rgba(1, 4, 15, 0.8); border: 1px solid rgba(255,255,255,0.07); 
             padding: 14px; color: #fff; border-radius: 8px; font-family: var(--font-mono); font-size: 13px; box-sizing: border-box;
         }
-        input:focus { border-color: var(--neon-cyan); outline: none; }
+        input:focus { border-color: var(--brand-orange); outline: none; box-shadow: 0 0 10px rgba(242,90,34,0.15); }
 
         .btn-dispatch { 
-            width: 100%; background: linear-gradient(135deg, #0066ff, #0044ff); color: #fff; border: 1px solid var(--neon-cyan); 
-            padding: 16px; font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; border-radius: 8px; cursor: pointer;
+            width: 100%; background: linear-gradient(135deg, var(--brand-blue), #01183d); color: #fff; border: 1px solid var(--brand-orange); 
+            padding: 16px; font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; border-radius: 8px; cursor: pointer; transition: all 0.2s;
         }
-        .btn-dispatch:disabled { background: #121722; border-color: rgba(255,255,255,0.03); color: #343f52; cursor: not-allowed; }
-        .btn-danger { width: 100%; background: rgba(255, 0, 85, 0.1); color: var(--neon-danger); border: 1px solid var(--neon-danger); padding: 14px; font-weight: 600; font-size: 12px; text-transform: uppercase; border-radius: 8px; cursor: pointer; margin-top: 15px; }
+        .btn-dispatch:disabled { background: #0e121a; border-color: rgba(255,255,255,0.02); color: #2d3647; cursor: not-allowed; }
+        .btn-danger { width: 100%; background: rgba(255, 0, 85, 0.08); color: var(--neon-danger); border: 1px solid var(--neon-danger); padding: 14px; font-weight: 600; font-size: 12px; text-transform: uppercase; border-radius: 8px; cursor: pointer; margin-top: 15px; transition: all 0.2s; }
         .btn-danger:hover { background: var(--neon-danger); color: #fff; }
-        .btn-mute { width: 100%; background: rgba(255, 238, 0, 0.08); color: #ffee00; border: 1px solid #ffee00; padding: 14px; font-weight: 600; font-size: 12px; text-transform: uppercase; border-radius: 8px; cursor: pointer; margin-top: 15px; }
-        .btn-mute:hover { background: #ffee00; color: #000; }
+        .btn-mute { width: 100%; background: rgba(242, 90, 34, 0.05); color: var(--brand-orange); border: 1px solid var(--brand-orange); padding: 14px; font-weight: 600; font-size: 12px; text-transform: uppercase; border-radius: 8px; cursor: pointer; margin-top: 15px; transition: all 0.2s; }
+        .btn-mute:hover { background: var(--brand-orange); color: #fff; }
 
-        .status-badge { position: absolute; top: 15px; right: 15px; background: rgba(8, 11, 20, 0.9); backdrop-filter: blur(10px); padding: 12px 20px; border-radius: 30px; font-size: 11px; font-weight: 700; z-index: 1010; border: 1px solid var(--border-glow); font-family: var(--font-mono); letter-spacing: 0.5px; }
-        .overlay-card { position: absolute; bottom: 15px; left: 15px; background: rgba(8, 11, 20, 0.9); backdrop-filter: blur(10px); padding: 18px; border-radius: 12px; z-index: 1010; border-left: 4px solid var(--neon-blue); width: calc(100% - 30px); max-width: 290px; }
+        .status-badge { position: absolute; top: 15px; right: 15px; background: rgba(1, 6, 18, 0.93); backdrop-filter: blur(10px); padding: 12px 20px; border-radius: 30px; font-size: 11px; font-weight: 700; z-index: 1010; border: 1px solid var(--border-glow); font-family: var(--font-mono); letter-spacing: 0.5px; color: #fff; }
+        .overlay-card { position: absolute; bottom: 15px; left: 15px; background: rgba(1, 6, 18, 0.93); backdrop-filter: blur(10px); padding: 18px; border-radius: 12px; z-index: 1010; border-left: 4px solid var(--brand-orange); width: calc(100% - 30px); max-width: 290px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
 
         .weather-display-box { max-width: 400px; }
-        .weather-val { font-size: 42px; font-weight: 700; margin-top: 5px; color: var(--neon-cyan); font-family: var(--font-mono); }
+        .weather-val { font-size: 42px; font-weight: 700; margin-top: 5px; color: var(--brand-orange); font-family: var(--font-mono); }
         .weather-sub-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; font-family: var(--font-mono); }
         .sub-weather-box { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.04); border-radius: 10px; padding: 15px; }
 
-        .pulse-alarm { background: var(--neon-danger) !important; color: #fff !important; animation: flash 1s infinite; border-color: #ff6699 !important; }
+        .pulse-alarm { background: var(--neon-danger) !important; color: #fff !important; animation: flash 1s infinite; border-color: #ff6699 !important; box-shadow: 0 0 15px rgba(255,0,85,0.4); }
         @keyframes flash { 50% { opacity: 0.6; } }
 
         @media (max-width: 991px) {
@@ -154,8 +161,10 @@
 <body>
 
 <div id="titlePage">
+    <canvas id="hudCanvas"></canvas>
+    
     <div class="title-container">
-        <img src="ChatGPT_Image_Jun_14__2026__06_16_00_PM-removebg-preview.png" alt="NavRakhshak Emblem" class="splash-logo-img">
+        <img src="logo-splash.png" alt="NavRakhshak Master Logo" class="splash-logo-img">
         <div class="title-logo">NAVRAKHSHAK</div>
         <div class="title-sub">Tactical Operations Command Hub</div>
         <button class="btn-enter" onclick="initializeSystemView()"><i class="fa-solid fa-shield-halved"></i> Initialize System</button>
@@ -165,7 +174,7 @@
 <div class="app-container">
     <aside>
         <div class="brand" onclick="returnToTitle()">
-            <img src="ChatGPT Image Jun 14, 2026, 06_21_50 PM.png" alt="NavRakhshak Icon" class="brand-logo-img">
+            <img src="logo-sidebar.png" alt="NavRakhshak Mini Icon" class="brand-logo-img">
             <div class="brand-text-group">
                 <div class="brand-logo">NAVRAKHSHAK</div>
                 <div class="brand-sub">Control Hub System</div>
@@ -173,7 +182,7 @@
         </div>
 
         <div class="sidebar-metrics">
-            <div class="metric-line"><span>Vessel Node:</span><span id="srvStatus" style="color:var(--neon-cyan)">ACTIVE</span></div>
+            <div class="metric-line"><span>Vessel Node:</span><span id="srvStatus" style="color:var(--brand-orange)">ACTIVE</span></div>
             <div class="metric-line"><span>Cloud Pipe:</span><span style="color:#00ff88">ONLINE</span></div>
         </div>
 
@@ -193,7 +202,7 @@
         <div class="overlay-card" id="telemetryOverlay">
             <label style="font-size: 8px; color: var(--text-muted);">Vessel Tracking Position</label>
             <div style="font-family: var(--font-mono); font-size: 14px; font-weight: 700; margin-bottom: 5px;" id="boatCoords">--.------, --.------</div>
-            <div style="font-family: var(--font-mono); font-size: 10px; color: var(--neon-cyan);" id="syncTime">DIST TO EDGE: 0.0 m</div>
+            <div style="font-family: var(--font-mono); font-size: 10px; color: var(--brand-orange);" id="syncTime">DIST TO EDGE: 0.0 m</div>
         </div>
 
         <section id="surveillancePage" class="hud-panel active"></section>
@@ -214,14 +223,14 @@
                     <input type="number" id="cmdBuf" placeholder="Buffer">
                 </div>
             </div>
-            <div style="border-top:1px solid rgba(255,255,255,0.05); padding-top:15px; margin-bottom:20px; max-width: 500px;">
+            <div style="border-top:1px solid rgba(255,255,255,0.06); padding-top:15px; margin-bottom:20px; max-width: 500px;">
                 <label>Security Authentication PIN</label>
                 <input type="password" id="adminPin" placeholder="Master PIN (1234)" maxlength="4" oninput="checkAuth()">
             </div>
             <div style="max-width: 500px; display: flex; flex-direction: column; gap: 10px;">
                 <button id="syncBtn" class="btn-dispatch" onclick="updateGeofence()" disabled>Dispatch Boundary Vector</button>
                 <button class="btn-mute" onclick="triggerManualMute()"><i class="fa-solid fa-volume-xmark"></i> Mute Hardware Buzzers</button>
-                <button onclick="clearPath()" style="background:none; border:none; color:var(--neon-danger); font-size:11px; font-weight:700; margin-top:10px; cursor:pointer; text-align: left; width: fit-content;"><i class="fa-solid fa-trash"></i> Clear Map Route Trail</button>
+                <button onclick="clearPath()" style="background:none; border:none; color:var(--neon-danger); font-size:10px; font-weight:700; margin-top:10px; cursor:pointer; text-align: left; width: fit-content;"><i class="fa-solid fa-trash"></i> Clear Map Route Trail</button>
             </div>
         </section>
 
@@ -248,7 +257,7 @@
                     </div>
                     <div class="sub-weather-box">
                         <label>Storm Alert Index</label>
-                        <div style="color:var(--neon-cyan); font-weight:700; font-size: 16px; margin-top:4px;" id="weatherStorm">NORMAL</div>
+                        <div style="color:var(--brand-orange); font-weight:700; font-size: 16px; margin-top:4px;" id="weatherStorm">NORMAL</div>
                     </div>
                 </div>
                 <button class="btn-danger" onclick="triggerManualWeatherAlert()" style="max-width: 100%;"><i class="fa-solid fa-cloud-bolt"></i> Broadcast Severe Weather Warning</button>
@@ -285,14 +294,74 @@
 
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 20 }).addTo(map);
 
-    var boatPath = L.polyline([], {color: '#00f0ff', weight: 4, opacity: 0.8, dashArray: '5, 10'}).addTo(map);
-    var boatIcon = L.circleMarker([fenceLat, fenceLon], { radius: 8, color: '#fff', fillColor: '#0066ff', fillOpacity: 1, weight: 3 }).addTo(map);
+    var boatPath = L.polyline([], {color: '#f25a22', weight: 4, opacity: 0.8, dashArray: '5, 10'}).addTo(map);
+    var boatIcon = L.circleMarker([fenceLat, fenceLon], { radius: 8, color: '#fff', fillColor: '#012b5d', fillOpacity: 1, weight: 3 }).addTo(map);
     var visualFence = L.circle([fenceLat, fenceLon], { radius: fenceRad, color: '#ff0055', weight: 1.5, fillOpacity: 0.04, dashArray: '4, 4' }).addTo(map);
 
     document.getElementById('cmdLat').value = fenceLat;
     document.getElementById('cmdLon').value = fenceLon;
     document.getElementById('cmdRad').value = fenceRad;
     document.getElementById('cmdBuf').value = parseFloat(localStorage.getItem('fBuf')) || 10;
+
+    // --- ANIMATED TACTICAL SCREEN GRID MATRIX ENGINE ---
+    const canvas = document.getElementById('hudCanvas');
+    const ctx = canvas.getContext('2d');
+    let satellites = [];
+
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    // Generate orbiting radar node specs
+    for (let i = 0; i < 4; i++) {
+        satellites.push({
+            x: Math.random() * canvas.width, y: Math.random() * canvas.height,
+            vx: (Math.random() - 0.5) * 0.8, vy: (Math.random() - 0.5) * 0.8,
+            radius: Math.random() * 3 + 2, range: Math.random() * 100 + 80, pulse: 0
+        });
+    }
+
+    function renderHudOverlay() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.strokeStyle = 'rgba(1, 43, 93, 0.08)';
+        ctx.lineWidth = 1;
+        
+        let gridSize = 45;
+        for (let x = 0; x < canvas.width; x += gridSize) {
+            ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+        }
+        for (let y = 0; y < canvas.height; y += gridSize) {
+            ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+        }
+
+        // Draw animated target scanner dots
+        satellites.forEach(sat => {
+            sat.x += sat.vx; sat.y += sat.vy;
+            if (sat.x < 0 || sat.x > canvas.width) sat.vx *= -1;
+            if (sat.y < 0 || sat.y > canvas.height) sat.vy *= -1;
+
+            sat.pulse += 0.02;
+            let currentRadius = sat.radius + Math.sin(sat.pulse) * 1.5;
+
+            // Core emitter element
+            ctx.beginPath();
+            ctx.arc(sat.x, sat.y, Math.max(1, currentRadius), 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(242, 90, 34, 0.4)';
+            ctx.fill();
+
+            // Tactical scan vector scanning grid lines
+            ctx.beginPath();
+            ctx.arc(sat.x, sat.y, sat.range * (0.3 + Math.abs(Math.sin(sat.pulse * 0.5)) * 0.7), 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(1, 43, 93, 0.05)';
+            ctx.stroke();
+        });
+
+        requestAnimationFrame(renderHudOverlay);
+    }
+    renderHudOverlay();
 
     function initializeSystemView() {
         document.getElementById('titlePage').classList.add('hidden');
@@ -319,7 +388,7 @@
             badge.style.display = "block";
             overlay.style.display = "block";
         } else {
-            mapLayer.style.opacity = "0.15"; 
+            mapLayer.style.opacity = "0.12"; 
             badge.style.display = "none";
             overlay.style.display = "none";
         }
@@ -377,7 +446,7 @@
                         
                         db.ref('config/syncCommand').set("WEATHER_ALERT");
                     } else {
-                        document.getElementById('weatherStorm').style.color = "var(--neon-cyan)";
+                        document.getElementById('weatherStorm').style.color = "var(--brand-orange)";
                         if(document.getElementById('statusBadge').innerText.includes("WEATHER ALERT")) {
                              document.getElementById('statusBadge').innerText = "LINK: SECURE / SAFE";
                              document.getElementById('statusBadge').className = "status-badge";
@@ -436,7 +505,7 @@
                      badge.className = 'status-badge';
                 }
                 sosBtn.className = 'nav-item';
-                boatIcon.setStyle({fillColor: '#0066ff'});
+                boatIcon.setStyle({fillColor: '#012b5d'});
             }
         });
 
