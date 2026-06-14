@@ -313,8 +313,8 @@
     var lastLat = 0, lastLon = 0;
 
     // --- MAPTILER SATELLITE HYBRID STREAM INTEGRATION ---
-    // Successfully bound your active API Key variable token directly into the tile request URL string
-    L.tileLayer('https://api.maptiler.com/maps/hybrid-v4/{z}/{x}/{y}.jpg?key=B3C9B6E6bO6gK5B9', {
+    // Updated to use the target API Key parameter syntax format for raster tiles
+    L.tileLayer('https://api.maptiler.com/maps/hybrid-v4/{z}/{x}/{y}.jpg?key=tbCji5PsF2IBPBis0LYU', {
         maxZoom: 20,
         crossOrigin: true
     }).addTo(map);
