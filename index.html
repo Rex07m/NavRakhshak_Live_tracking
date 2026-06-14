@@ -43,17 +43,17 @@
         }
         @media (min-width: 992px) { 
             aside { 
-                width: 280px; height: 100vh; border-right: 1px solid var(--glass-border); border-bottom: none;
+                width: 320px; height: 100vh; border-right: 1px solid var(--glass-border); border-bottom: none;
                 padding: 35px 20px; justify-content: flex-start; gap: 30px;
             } 
         }
 
-        .brand { text-align: left; cursor: pointer; display: flex; align-items: center; gap: 12px; }
-        .brand-logo-img { width: 42px; height: 42px; object-fit: contain; }
+        .brand { text-align: left; cursor: pointer; display: flex; align-items: center; gap: 16px; }
+        .brand-logo-img { width: 75px; height: 75px; object-fit: contain; filter: drop-shadow(0 2px 8px rgba(1, 43, 93, 0.15)); }
         
         .brand-text-group { display: flex; flex-direction: column; }
-        .brand-logo { font-size: 19px; font-weight: 700; letter-spacing: 1.5px; color: var(--brand-blue); }
-        .brand-sub { font-size: 9px; color: var(--brand-orange); letter-spacing: 2px; text-transform: uppercase; font-weight: 700; }
+        .brand-logo { font-size: 21px; font-weight: 700; letter-spacing: 1.5px; color: var(--brand-blue); }
+        .brand-sub { font-size: 10px; color: var(--brand-orange); letter-spacing: 2px; text-transform: uppercase; font-weight: 700; }
 
         .sidebar-metrics { background: rgba(1, 43, 93, 0.04); border: 1px solid var(--glass-border); border-radius: 10px; padding: 12px; font-family: var(--font-mono); font-size: 11px; }
         .metric-line { display: flex; justify-content: space-between; margin-bottom: 6px; }
@@ -95,18 +95,19 @@
 
         /* Container holds structural contents flatly over video without adding an overlay panel card background */
         .title-container { 
-            position: relative; z-index: 5; width: 88%; max-width: 480px; 
+            position: relative; z-index: 5; width: 92%; max-width: 600px; 
             display: flex; flex-direction: column; align-items: center; 
         }
         
+        /* MASSIVE EMBEDDED LOGO SPECS */
         .splash-logo-img {
-            width: 260px; height: 260px; object-fit: contain; margin-bottom: 30px;
-            filter: drop-shadow(0 4px 25px rgba(0, 0, 0, 0.5));
+            width: 450px; height: 450px; max-width: 85vw; max-height: 45vh; object-fit: contain; margin-bottom: 20px;
+            filter: drop-shadow(0 10px 35px rgba(0, 0, 0, 0.65));
             animation: tacticalPulse 4s ease-in-out infinite;
         }
         @keyframes tacticalPulse {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-8px); }
+            0%, 100% { transform: translateY(0px) scale(1); }
+            50% { transform: translateY(-12px) scale(1.02); }
         }
         
         .search-anim-container {
@@ -183,8 +184,8 @@
         /* --- MOBILE LAYOUT QUERY --- */
         @media (max-width: 991px) {
             aside { padding: 12px; gap: 10px; }
-            .brand-logo-img { width: 34px; height: 34px; }
-            .brand-logo { font-size: 16px; }
+            .brand-logo-img { width: 55px; height: 55px; }
+            .brand-logo { font-size: 18px; }
             .sidebar-metrics { display: none; } 
             .hud-panel { top: 125px; bottom: 20px; left: 12px; right: 12px; padding: 20px; }
             .status-badge { top: auto; bottom: 130px; left: 15px; right: auto; }
@@ -200,7 +201,7 @@
     </video>
     
     <div class="title-container">
-        <img src="ChatGPT Image Jun 14, 2026, 09_03_53 PM.png" alt="NavRakhshak Master Logo" class="splash-logo-img">
+        <img src="ChatGPT_Image_Jun_14__2026__09_03_53_PM-removebg-preview.png" alt="NavRakhshak Master Logo" class="splash-logo-img">
         
         <div class="search-anim-container">
             <i class="fa-solid fa-magnifying-glass search-icon-spin"></i>
@@ -214,7 +215,7 @@
 <div class="app-container">
     <aside>
         <div class="brand" onclick="returnToTitle()">
-            <img src="ChatGPT Image Jun 14, 2026, 09_03_53 PM.png" alt="NavRakhshak Mini Icon" class="brand-logo-img">
+            <img src="ChatGPT_Image_Jun_14__2026__09_03_53_PM-removebg-preview.png" alt="NavRakhshak Mini Icon" class="brand-logo-img">
             <div class="brand-text-group">
                 <div class="brand-logo">NAVRAKHSHAK</div>
                 <div class="brand-sub">Control Hub System</div>
