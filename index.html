@@ -43,6 +43,7 @@
             } 
         }
 
+        .brand { text-align: left; }
         .brand-logo { font-size: 20px; font-weight: 700; letter-spacing: 2px; color: #fff; }
         .brand-sub { font-size: 9px; color: var(--neon-cyan); letter-spacing: 2.5px; text-transform: uppercase; margin-top: 3px; font-weight: 600; }
 
@@ -69,7 +70,7 @@
         .main-workspace { flex-grow: 1; position: relative; height: 100%; background: #030407; }
         #map { height: 100%; width: 100%; position: absolute; z-index: 1; }
 
-        /* Left Sliding Panels */
+        /* Control Sliding Sidebar Panels */
         .hud-panel { 
             position: absolute; top: 15px; left: 15px; bottom: 15px;
             width: calc(100% - 30px); max-width: 360px; background: var(--panel-bg); backdrop-filter: blur(20px);
@@ -191,10 +192,8 @@
             <div style="font-family: var(--font-mono); font-size: 10px; color: var(--neon-cyan);" id="syncTime">DIST TO EDGE: 1998.2 m</div>
         </div>
 
-        <section id="mapPage" class="hud-panel active">
-            <div class="panel-title">SYSTEM SPECS</div>
-            <p style="font-size:12px; color:var(--text-muted); line-height:1.5; margin:0;">Continuous telemetry mapping sequence processing over-the-air packet arrays cleanly.</p>
-        </section>
+        <section id="mapPage" class="hud-panel active" style="display: none;">
+            </section>
 
         <section id="weatherSidebar" class="weather-panel">
             <div class="panel-title">METEOROLOGICAL SPEC</div>
@@ -298,7 +297,6 @@
         setTimeout(() => { map.invalidateSize(); }, 200);
     }
 
-    // Fixed Open/Close toggle engine logic for right sidebar panel
     function toggleWeatherPanel() {
         const sideBar = document.getElementById('weatherSidebar');
         const toggleBtn = document.getElementById('weatherToggle');
@@ -315,7 +313,6 @@
         document.getElementById('statusBadge').classList.remove('shift');
     }
 
-    // MANUAL HARDWARE SIREN SILENCER OVERRIDE METHOD
     function triggerManualMute() {
         db.ref('config/syncCommand').set("MUTE_ALL").then(() => {
             alert("MANUAL MUTE INSTRUCTION DISPATCHED TO RECEIVER.");
@@ -324,7 +321,7 @@
 
     function triggerManualWeatherAlert() {
         db.ref('config/syncCommand').set("WEATHER_ALERT").then(() => {
-            alert("MANUAL WEATHER ARREST BROADCAST TRANSMITTED.");
+            alert("MANUAL WEATHER ALERT BROADCAST TRANSMITTED.");
         });
     }
 
@@ -342,7 +339,6 @@
         localStorage.setItem('fBuf', buf);
     }
 
-    // STREAM MATRIX GENERATOR: Compiles Temperature, Wind Velocity, and Severe Storm Risk parameters
     function fetchLocationWeather(lat, lon) {
         if (Date.now() - lastWeatherCheckTime < 60000) return;
         lastWeatherCheckTime = Date.now();
@@ -358,7 +354,6 @@
                     document.getElementById('weatherTemp').innerText = `${temp}°C`;
                     document.getElementById('weatherWind').innerText = `${windSpeed} km/h`;
                     
-                    // Severe meteorological anomaly verification tracking (Weathercodes 70+ point to heavy squalls/storms)
                     let stormStatus = "NORMAL";
                     if (windSpeed > 25.0 || wCode >= 71) {
                         stormStatus = "TYPHOON / STORM DETECTED";
@@ -366,7 +361,6 @@
                         document.getElementById('statusBadge').innerText = "WEATHER ALERT: SEVERE SQUALL";
                         document.getElementById('statusBadge').className = "status-badge pulse-alarm";
                         
-                        // Automatically pipe parameters UP into cloud registers for hardware sync intervals
                         db.ref('config/syncCommand').set("WEATHER_ALERT");
                     } else {
                         document.getElementById('weatherStorm').style.color = "var(--neon-cyan)";
@@ -374,7 +368,6 @@
                     document.getElementById('weatherStorm').innerText = stormStatus;
                     document.getElementById('weatherDesc').innerText = `Weather Code Status Index Reference: ${wCode}`;
 
-                    // UPDATE THE REALTIME HARDWARE SYNC OBJECT MATRIX CONTEXT
                     db.ref('weather_live').set({
                         temperature: temp,
                         wind: windSpeed,
