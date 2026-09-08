@@ -20,7 +20,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Prepare site
-        run: cp -R v2/. ./_site/
+        run: mkdir -p _site && cp -R v2/. _site/
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
