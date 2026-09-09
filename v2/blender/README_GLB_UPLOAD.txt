@@ -1,0 +1,1 @@
+The binary vessel asset is supplied locally and must be uploaded as navrakshak_vessel.glb for deployment.
