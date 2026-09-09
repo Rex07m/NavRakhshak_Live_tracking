@@ -25,6 +25,19 @@ jobs:
           cp -R v2/. _site/
           cp ChatGPT_Image_Jun_14__2026__09_03_53_PM-removebg-preview.png _site/
           cp 48091-452601156_medium.mp4 _site/
+      - name: Attach cinematic media to every page
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path('_site')
+          for p in root.glob('*.html'):
+              s=p.read_text(encoding='utf-8')
+              if 'media.css' not in s:
+                  s=s.replace('</head>','<link rel="stylesheet" href="media.css?v=6"><link rel="stylesheet" href="drawer-fix.css?v=6"></head>')
+              if 'media.js' not in s:
+                  s=s.replace('</body>','<script src="media.js?v=6"></script></body>')
+              p.write_text(s,encoding='utf-8')
+          PY
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
