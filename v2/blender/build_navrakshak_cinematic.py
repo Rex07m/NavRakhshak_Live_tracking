@@ -142,7 +142,7 @@ gf.display_type = 'WIRE'
 gf.data.materials.append(cyan)
 ring('GEOFENCE INNER', 18, 3, cyan)
 
-# Radar animation — intentionally avoids Blender 5.2 Action.fcurves API.
+# Radar animation — avoids Blender 5.2 Action.fcurves API.
 radar.rotation_euler = (0, 0, 0)
 radar.keyframe_insert('rotation_euler', frame=1, index=2)
 radar.rotation_euler.z = math.tau
@@ -196,7 +196,8 @@ bpy.context.object.data.size = 10
 sc = bpy.context.scene
 sc.frame_start = 1
 sc.frame_end = 240
-sc.render.engine = 'BLENDER_EEVEE_NEXT'
+# Blender 5.2 uses the enum value 'BLENDER_EEVEE', not the old 'BLENDER_EEVEE_NEXT'.
+sc.render.engine = 'BLENDER_EEVEE'
 sc.render.resolution_x = 1280
 sc.render.resolution_y = 720
 sc.render.resolution_percentage = 60
