@@ -1,10 +1,24 @@
-import bpy, math
+import bpy, math, os
 from mathutils import Vector
 
 # NavRakhshak local Blender builder — Blender 5.2.1 compatible.
 # Builds a cinematic maritime vessel scene and exports a web-ready GLB.
 
-OUT = bpy.path.abspath('//navrakshak_vessel.glb')
+# Use a dedicated writable folder and a unique filename so Windows file locks
+# or an existing GLB cannot abort the build with PermissionError.
+OUT_DIR = os.path.join(os.path.expanduser('~'), 'Downloads', 'NavRakhshak_Blender')
+os.makedirs(OUT_DIR, exist_ok=True)
+OUT = os.path.join(OUT_DIR, 'navrakshak_vessel.glb')
+BLEND_OUT = os.path.join(OUT_DIR, 'navrakshak_cinematic.blend')
+PREVIEW_OUT = os.path.join(OUT_DIR, 'navrakshak_preview.png')
+
+# If a previous export is locked, automatically choose a numbered filename.
+if os.path.exists(OUT):
+    base, ext = os.path.splitext(OUT)
+    i = 2
+    while os.path.exists(f'{base}_{i}{ext}'):
+        i += 1
+    OUT = f'{base}_{i}{ext}'
 
 
 def mat(name, color, metallic=0.0, rough=.4, emission=None):
@@ -196,16 +210,18 @@ bpy.context.object.data.size = 10
 sc = bpy.context.scene
 sc.frame_start = 1
 sc.frame_end = 240
-# Blender 5.2 uses the enum value 'BLENDER_EEVEE', not the old 'BLENDER_EEVEE_NEXT'.
 sc.render.engine = 'BLENDER_EEVEE'
 sc.render.resolution_x = 1280
 sc.render.resolution_y = 720
 sc.render.resolution_percentage = 60
-sc.render.filepath = bpy.path.abspath('//navrakshak_preview.png')
+sc.render.filepath = PREVIEW_OUT
 
 # Export GLB and save the source scene.
 bpy.ops.export_scene.gltf(filepath=OUT, export_format='GLB', export_apply=True)
-bpy.ops.wm.save_as_mainfile(filepath=bpy.path.abspath('//navrakshak_cinematic.blend'))
+bpy.ops.wm.save_as_mainfile(filepath=BLEND_OUT)
 bpy.ops.render.render(write_still=True)
 
-print('NAVRAKSHAK BUILD COMPLETE:', OUT)
+print('NAVRAKSHAK BUILD COMPLETE:')
+print('GLB:', OUT)
+print('BLEND:', BLEND_OUT)
+print('PREVIEW:', PREVIEW_OUT)
