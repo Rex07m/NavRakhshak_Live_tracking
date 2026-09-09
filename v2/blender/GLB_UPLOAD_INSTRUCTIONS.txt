@@ -1,0 +1,1 @@
+The uploaded binary GLB should replace navrakshak_vessel.glb before publishing if the GitHub connector cannot write binary blobs directly.
