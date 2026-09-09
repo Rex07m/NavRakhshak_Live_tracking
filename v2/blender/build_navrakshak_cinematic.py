@@ -1,8 +1,8 @@
 import bpy, math
 from mathutils import Vector
 
-# NavRakhshak local Blender builder — run from Blender's Scripting workspace.
-# Blender 5.2-compatible cinematic vessel scene + GLB export.
+# NavRakhshak local Blender builder — Blender 5.2.1 LTS compatible.
+# Produces a visible cinematic vessel scene and exports a web-ready GLB.
 
 OUT = bpy.path.abspath('//navrakshak_vessel.glb')
 
@@ -36,8 +36,7 @@ def ring(name, radius, z, material):
     o=bpy.context.object; o.name=name; o.data.materials.append(material); return o
 
 def wake_curve(name, y, material):
-    # Blender 5.2-compatible curve construction; avoids the removed
-    # primitive_bezier_curve_add operator.
+    # Blender 5.2-compatible curve construction.
     cu_data=bpy.data.curves.new(name,'CURVE')
     cu_data.dimensions='3D'; cu_data.bevel_depth=.09; cu_data.bevel_resolution=4
     spline=cu_data.splines.new('BEZIER'); spline.bezier_points.add(3)
@@ -57,12 +56,12 @@ glass=mat('Marine Glass',(.03,.32,.48),.25,.08)
 cyan=mat('Telemetry Cyan',(.05,.75,1),.35,.15,(.05,.55,1))
 water=mat('Ocean',(.008,.055,.095),.15,.2)
 
-# ocean
+# ocean and tactical range rings
 cube('Ocean',(0,0,-1.2),(55,55,.08),water,0)
 for r in (9,16,24,34,45): ring('Range Ring',r,-1.05,cyan)
 
 # vessel
-root=bpy.data.objects.new('NAVRAKHSHAK_VESSEL',None); bpy.context.collection.objects.link(root)
+root=bpy.data.objects.new('NAVRAKSHAK_VESSEL',None); bpy.context.collection.objects.link(root)
 hull=cube('Hull',(0,0,0),(4.8,1.35,.48),white,.28); hull.parent=root
 stripe=cube('Safety Stripe',(0,-1.37,.18),(4.5,.06,.12),orange,.03); stripe.parent=root
 base=cube('Deck',(0,0,.62),(4.2,1.25,.14),dark,.08); base.parent=root
@@ -90,9 +89,11 @@ gf=bpy.context.object; gf.name='3D GEOFENCE'; gf.display_type='WIRE'; gf.data.ma
 ring('GEOFENCE INNER',18,3,cyan)
 
 # animate radar and vessel
-radar.rotation_euler=(0,0,0); radar.keyframe_insert('rotation_euler',frame=1,index=2)
-radar.rotation_euler.z=math.tau; radar.keyframe_insert('rotation_euler',frame=120,index=2)
-for fc in radar.animation_data.action.fcurves: fc.modifiers.new('CYCLES')
+# Blender 5.2 uses the newer Action API, so avoid direct Action.fcurves access.
+# Three explicit keyframes give the cinematic preview a continuous rotation over the shot.
+for frame, angle in ((1,0),(120,math.tau),(240,math.tau*2)):
+    radar.rotation_euler.z=angle
+    radar.keyframe_insert('rotation_euler',frame=frame,index=2)
 root.location=(0,0,0); root.keyframe_insert('location',frame=1)
 root.location=(7,2,.15); root.keyframe_insert('location',frame=240)
 
@@ -118,4 +119,4 @@ sc.render.filepath=bpy.path.abspath('//navrakshak_preview.png')
 bpy.ops.export_scene.gltf(filepath=OUT,export_format='GLB',export_apply=True)
 bpy.ops.wm.save_as_mainfile(filepath=bpy.path.abspath('//navrakshak_cinematic.blend'))
 bpy.ops.render.render(write_still=True)
-print('NAVRAKHSHAK BUILD COMPLETE:', OUT)
+print('NAVRAKSHAK BUILD COMPLETE:', OUT)
